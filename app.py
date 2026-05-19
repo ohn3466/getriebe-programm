@@ -30,6 +30,46 @@ STATUS_COLORS = {
     "NICHT BERECHNET": "#667085",
 }
 
+DASHBOARD_DEFAULTS = {
+    "project_name": "Getriebeauslegung",
+    "power_kw": 12.0,
+    "n1_rpm": 1850.0,
+    "n2_target_rpm": 410.0,
+    "alpha_deg": 20.0,
+    "beta_deg": 0.0,
+    "material_name": "C45E",
+    "shaft_label": "Ritzel auf Welle",
+    "d_sh_pinion_mm": 28.0,
+    "z1": 25,
+    "z2_auto": True,
+    "z2_manual": 113,
+    "auto_module": True,
+    "selected_module": 2.5,
+    "width_rule_label": "b = psi_d * d1",
+    "psi_d": 1.0,
+    "width_factor_m": 12.0,
+    "b2_offset_mm": 0.0,
+    "bearing_distance_left_mm": 60.0,
+    "bearing_distance_right_mm": 80.0,
+    "bearing_seat_left_mm": 30.0,
+    "bearing_seat_right_mm": 30.0,
+    "bearing_life_required_h": 10000.0,
+    "selected_bearing_left": "Keine Auswahl",
+    "selected_bearing_right": "Keine Auswahl",
+}
+
+
+def init_dashboard_state() -> None:
+    for key, value in DASHBOARD_DEFAULTS.items():
+        st.session_state.setdefault(f"dashboard_{key}", value)
+
+
+def preserve_dashboard_state() -> None:
+    for key in DASHBOARD_DEFAULTS:
+        state_key = f"dashboard_{key}"
+        if state_key in st.session_state:
+            st.session_state[state_key] = st.session_state[state_key]
+
 
 @st.cache_data
 def load_materials() -> list[dict[str, Any]]:
@@ -264,6 +304,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+init_dashboard_state()
+preserve_dashboard_state()
 materials = load_materials()
 norm_modules = load_norms_cached()
 norm_module_rows = load_norm_rows_cached()
@@ -272,23 +314,25 @@ bearings = load_bearings_cached()
 with st.sidebar:
     st.header("Eingaben")
 
-    project_name = st.text_input("Projektname", value="Getriebeauslegung")
+    project_name = st.text_input("Projektname", key="dashboard_project_name")
 
     st.subheader("Grunddaten")
-    power_kw = st.number_input("Leistung P [kW]", min_value=0.01, value=12.0, step=0.5)
-    n1_rpm = st.number_input("Antriebsdrehzahl n1 [1/min]", min_value=1.0, value=1850.0, step=10.0)
+    power_kw = st.number_input("Leistung P [kW]", min_value=0.01, step=0.5, key="dashboard_power_kw")
+    n1_rpm = st.number_input("Antriebsdrehzahl n1 [1/min]", min_value=1.0, step=10.0, key="dashboard_n1_rpm")
     n2_target_rpm = st.number_input(
-        "Abtriebsdrehzahl n2 soll [1/min]", min_value=1.0, value=410.0, step=10.0
+        "Abtriebsdrehzahl n2 soll [1/min]", min_value=1.0, step=10.0, key="dashboard_n2_target_rpm"
     )
-    alpha_deg = st.number_input("Eingriffswinkel alpha [deg]", min_value=1.0, value=20.0, step=0.5)
-    beta_deg = st.number_input("Schraegungswinkel beta [deg]", min_value=0.0, value=0.0, step=0.5)
+    alpha_deg = st.number_input("Eingriffswinkel alpha [deg]", min_value=1.0, step=0.5, key="dashboard_alpha_deg")
+    beta_deg = st.number_input("Schraegungswinkel beta [deg]", min_value=0.0, step=0.5, key="dashboard_beta_deg")
 
     st.subheader("Werkstoff")
     material_names = [str(material["werkstoff"]) for material in materials]
+    if st.session_state.dashboard_material_name not in material_names:
+        st.session_state.dashboard_material_name = material_names[0]
     material_name = st.selectbox(
         "Werkstoff",
         material_names,
-        index=material_names.index("C45E") if "C45E" in material_names else 0,
+        key="dashboard_material_name",
     )
     material = find_material(materials, material_name)
 
@@ -297,49 +341,59 @@ with st.sidebar:
         "Ritzelbauart",
         ["Ritzel auf Welle", "Ritzelwelle"],
         horizontal=True,
+        key="dashboard_shaft_label",
     )
     shaft_design = "mounted" if shaft_label == "Ritzel auf Welle" else "pinion_shaft"
-    d_sh_pinion_mm = st.number_input("d_sh Ritzel [mm]", min_value=1.0, value=28.0, step=1.0)
-    z1 = st.number_input("Zaehnezahl Ritzel z1", min_value=6, value=25, step=1)
-    z2_auto = st.toggle("z2 automatisch aus i * z1 berechnen", value=True)
+    d_sh_pinion_mm = st.number_input("d_sh Ritzel [mm]", min_value=1.0, step=1.0, key="dashboard_d_sh_pinion_mm")
+    z1 = st.number_input("Zaehnezahl Ritzel z1", min_value=6, step=1, key="dashboard_z1")
+    z2_auto = st.toggle("z2 automatisch aus i * z1 berechnen", key="dashboard_z2_auto")
     z2_manual = None
     if not z2_auto:
-        z2_manual = st.number_input("Zaehnezahl Gegenrad z2", min_value=1, value=113, step=1)
+        z2_manual = st.number_input("Zaehnezahl Gegenrad z2", min_value=1, step=1, key="dashboard_z2_manual")
 
     preliminary_m = calc_module_from_dsh(d_sh_pinion_mm, int(z1), beta_deg, shaft_design)
     recommended_m = next_preferred_norm_module(preliminary_m, norm_module_rows)
-    auto_module = st.toggle("Normmodul automatisch uebernehmen", value=True)
+    auto_module = st.toggle("Normmodul automatisch uebernehmen", key="dashboard_auto_module")
     module_values = sorted(float(value) for value in norm_modules)
     recommended_index = module_values.index(recommended_m)
     if auto_module:
         selected_module = recommended_m
         st.caption(f"Empfehlung aus Tabelle: m = {recommended_m:g} mm")
     else:
+        if float(st.session_state.dashboard_selected_module) not in module_values:
+            st.session_state.dashboard_selected_module = recommended_m
         selected_module = st.selectbox(
             "Normmodul m [mm]",
             module_values,
             index=recommended_index,
             format_func=lambda value: f"{value:g} mm",
+            key="dashboard_selected_module",
         )
 
     st.subheader("Breite")
-    width_rule_label = st.selectbox("Breitenregel", ["b = psi_d * d1", "b = k_b * m"])
+    if st.session_state.dashboard_width_rule_label not in ["b = psi_d * d1", "b = k_b * m"]:
+        st.session_state.dashboard_width_rule_label = "b = psi_d * d1"
+    width_rule_label = st.selectbox(
+        "Breitenregel",
+        ["b = psi_d * d1", "b = k_b * m"],
+        key="dashboard_width_rule_label",
+    )
     width_rule = "psi_d" if width_rule_label == "b = psi_d * d1" else "factor_m"
-    psi_d = st.number_input("psi_d [-]", min_value=0.1, value=1.0, step=0.1)
-    width_factor_m = st.number_input("k_b [-]", min_value=1.0, value=12.0, step=1.0)
-    b2_offset_mm = st.number_input("b2-Versatz [mm]", value=0.0, step=1.0)
+    psi_d = st.number_input("psi_d [-]", min_value=0.1, step=0.1, key="dashboard_psi_d")
+    width_factor_m = st.number_input("k_b [-]", min_value=1.0, step=1.0, key="dashboard_width_factor_m")
+    b2_offset_mm = st.number_input("b2-Versatz [mm]", step=1.0, key="dashboard_b2_offset_mm")
 
     st.subheader("Lager")
     bearing_distance_left_mm = st.number_input(
-        "Abstand linkes Lager bis Zahnrad [mm]", min_value=1.0, value=60.0, step=5.0
+        "Abstand linkes Lager bis Zahnrad [mm]", min_value=1.0, step=5.0, key="dashboard_bearing_distance_left_mm"
     )
     bearing_distance_right_mm = st.number_input(
-        "Abstand Zahnrad bis rechtes Lager [mm]", min_value=1.0, value=80.0, step=5.0
+        "Abstand Zahnrad bis rechtes Lager [mm]", min_value=1.0, step=5.0, key="dashboard_bearing_distance_right_mm"
     )
-    bearing_seat_left_mm = st.number_input("Lagersitz links [mm]", min_value=1.0, value=30.0, step=1.0)
-    bearing_seat_right_mm = st.number_input("Lagersitz rechts [mm]", min_value=1.0, value=30.0, step=1.0)
+    bearing_seat_left_mm = st.number_input("Lagersitz links [mm]", min_value=1.0, step=1.0, key="dashboard_bearing_seat_left_mm")
+    bearing_seat_right_mm = st.number_input("Lagersitz rechts [mm]", min_value=1.0, step=1.0, key="dashboard_bearing_seat_right_mm")
     bearing_life_required_h = st.number_input(
-        "Mindestlebensdauer L10h [h]", min_value=1.0, value=10000.0, step=1000.0
+        "Mindestlebensdauer L10h [h]", min_value=1.0, step=1000.0, key="dashboard_bearing_life_required_h"
     )
 
 left_options = matching_bearings(bearings, bearing_seat_left_mm)
@@ -348,8 +402,12 @@ right_options = matching_bearings(bearings, bearing_seat_right_mm)
 with st.sidebar:
     left_names = ["Keine Auswahl"] + [str(bearing["lager"]) for bearing in left_options]
     right_names = ["Keine Auswahl"] + [str(bearing["lager"]) for bearing in right_options]
-    selected_bearing_left = st.selectbox("Lager links", left_names)
-    selected_bearing_right = st.selectbox("Lager rechts", right_names)
+    if st.session_state.dashboard_selected_bearing_left not in left_names:
+        st.session_state.dashboard_selected_bearing_left = "Keine Auswahl"
+    if st.session_state.dashboard_selected_bearing_right not in right_names:
+        st.session_state.dashboard_selected_bearing_right = "Keine Auswahl"
+    selected_bearing_left = st.selectbox("Lager links", left_names, key="dashboard_selected_bearing_left")
+    selected_bearing_right = st.selectbox("Lager rechts", right_names, key="dashboard_selected_bearing_right")
     selected_bearing_left = None if selected_bearing_left == "Keine Auswahl" else selected_bearing_left
     selected_bearing_right = None if selected_bearing_right == "Keine Auswahl" else selected_bearing_right
 

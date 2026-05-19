@@ -36,6 +36,23 @@ class WizardAppSmokeTests(unittest.TestCase):
 
         self.assertFalse(app.button[2].disabled)
 
+    def test_wizard_keeps_values_when_moving_back_and_forward(self):
+        app = AppTest.from_file("wizard_app.py")
+        app.run(timeout=10)
+
+        app.number_input[0].set_value(15.0).run(timeout=10)
+        app.button[0].click().run(timeout=10)
+        app.session_state["wizard_material_name"] = "C45E"
+        app.run(timeout=10)
+        app.button[2].click().run(timeout=10)
+        app.button[0].click().run(timeout=10)
+        app.button[1].click().run(timeout=10)
+
+        self.assertEqual(len(app.exception), 0)
+        self.assertEqual(app.header[0].value, "1. Grunddaten")
+        self.assertEqual(app.number_input[0].value, 15.0)
+        self.assertEqual(metric_value(app, "M1"), "77.43 Nm")
+
     def test_wizard_manual_z2_updates_visible_g_alpha(self):
         app = AppTest.from_file("wizard_app.py")
         app.session_state["wizard_step"] = 2
@@ -54,4 +71,3 @@ class WizardAppSmokeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

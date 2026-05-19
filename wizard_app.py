@@ -34,6 +34,34 @@ STATUS_COLORS = {
     "NICHT BERECHNET": "#667085",
 }
 
+WIZARD_DEFAULTS = {
+    "step": 0,
+    "project_name": "Getriebeauslegung",
+    "power_kw": 12.0,
+    "n1_rpm": 1850.0,
+    "n2_target_rpm": 410.0,
+    "alpha_deg": 20.0,
+    "beta_deg": 0.0,
+    "material_name": None,
+    "shaft_design": "mounted",
+    "d_sh_pinion_mm": 28.0,
+    "z1": 25,
+    "z2_auto": True,
+    "z2_manual": 113,
+    "selected_module": None,
+    "width_rule": "psi_d",
+    "psi_d": 1.0,
+    "width_factor_m": 12.0,
+    "b2_offset_mm": 0.0,
+    "bearing_distance_left_mm": 60.0,
+    "bearing_distance_right_mm": 80.0,
+    "bearing_seat_left_mm": 30.0,
+    "bearing_seat_right_mm": 30.0,
+    "bearing_life_required_h": 10000.0,
+    "selected_bearing_left": None,
+    "selected_bearing_right": None,
+}
+
 
 @st.cache_data
 def load_materials() -> list[dict[str, Any]]:
@@ -77,35 +105,15 @@ def fmt(value: float | None, digits: int = 3, unit: str = "") -> str:
 
 
 def init_state() -> None:
-    defaults = {
-        "step": 0,
-        "project_name": "Getriebeauslegung",
-        "power_kw": 12.0,
-        "n1_rpm": 1850.0,
-        "n2_target_rpm": 410.0,
-        "alpha_deg": 20.0,
-        "beta_deg": 0.0,
-        "material_name": None,
-        "shaft_design": "mounted",
-        "d_sh_pinion_mm": 28.0,
-        "z1": 25,
-        "z2_auto": True,
-        "z2_manual": 113,
-        "selected_module": None,
-        "width_rule": "psi_d",
-        "psi_d": 1.0,
-        "width_factor_m": 12.0,
-        "b2_offset_mm": 0.0,
-        "bearing_distance_left_mm": 60.0,
-        "bearing_distance_right_mm": 80.0,
-        "bearing_seat_left_mm": 30.0,
-        "bearing_seat_right_mm": 30.0,
-        "bearing_life_required_h": 10000.0,
-        "selected_bearing_left": None,
-        "selected_bearing_right": None,
-    }
-    for key, value in defaults.items():
+    for key, value in WIZARD_DEFAULTS.items():
         st.session_state.setdefault(f"wizard_{key}", value)
+
+
+def preserve_wizard_state() -> None:
+    for key in WIZARD_DEFAULTS:
+        state_key = f"wizard_{key}"
+        if state_key in st.session_state:
+            st.session_state[state_key] = st.session_state[state_key]
 
 
 def current_inputs(materials: list[dict[str, Any]]) -> GearInputs:
@@ -360,6 +368,7 @@ st.markdown(
 )
 
 init_state()
+preserve_wizard_state()
 materials = load_materials()
 norm_module_rows = load_norm_rows_cached()
 bearings = load_bearings_cached()
