@@ -11,6 +11,7 @@ import streamlit as st
 from core.dependency_engine import load_bearings, load_norm_module_rows, recalculate_all
 from core.models import GearInputs
 from core.report import generate_calculation_report, generate_latex_report, generate_live_latex_blocks
+from core.table_views import build_norm_module_table
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -168,19 +169,12 @@ def selected_module_text(results: Any) -> str:
 
 
 def module_table(norm_modules: list[dict[str, Any]], results: Any) -> pd.DataFrame:
-    rows = []
-    for row in sorted(norm_modules, key=lambda item: (float(item["modul"]), str(item["reihe"]))):
-        module = float(row["modul"])
-        if module < results.m_theoretical_mm:
-            status = "zu klein"
-        elif module == results.m_recommended_mm:
-            status = "empfohlen"
-        else:
-            status = "moeglich"
-        if st.session_state.wizard_selected_module == module:
-            status = f"{status}, gewaehlt"
-        rows.append({"Reihe": row["reihe"], "m [mm]": module, "Status": status})
-    return pd.DataFrame(rows)
+    return build_norm_module_table(
+        norm_modules,
+        results.m_theoretical_mm,
+        results.m_recommended_mm,
+        st.session_state.wizard_selected_module,
+    ).rename(columns={"Normmodul [mm]": "m [mm]"})
 
 
 def bearing_options(bearings: list[dict[str, Any]], seat_mm: float) -> list[dict[str, Any]]:

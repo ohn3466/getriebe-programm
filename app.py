@@ -16,6 +16,7 @@ from core.calculations import (
 from core.dependency_engine import load_bearings, load_norm_module_rows, load_norm_modules, recalculate_all
 from core.models import GearInputs
 from core.report import generate_calculation_report, generate_latex_report, generate_live_latex_blocks
+from core.table_views import build_norm_module_table
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -438,10 +439,12 @@ with module_tab:
     col2.metric("n2 real", f"{results.n2_real_rpm:.2f} 1/min")
     col3.metric("Abweichung", f"{results.n2_deviation_percent:.2f} %")
 
-    module_df = pd.DataFrame(norm_module_rows).rename(columns={"reihe": "Reihe", "modul": "Normmodul [mm]"})
-    module_df = module_df.sort_values(["Normmodul [mm]", "Reihe"]).reset_index(drop=True)
-    module_df["Empfohlen"] = module_df["Normmodul [mm]"].eq(results.m_recommended_mm)
-    module_df["Gewaehlt"] = module_df["Normmodul [mm]"].eq(results.m_selected_mm)
+    module_df = build_norm_module_table(
+        norm_module_rows,
+        results.m_theoretical_mm,
+        results.m_recommended_mm,
+        results.m_selected_mm,
+    )
     st.dataframe(module_df, width="stretch", hide_index=True)
 
 with geometry_tab:
