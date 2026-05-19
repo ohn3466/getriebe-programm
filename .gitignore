@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local Streamlit/runtime files
+.streamlit/secrets.toml
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Exports/downloads
+*.zip
+*.log
+getriebe_rechenbericht.*
+getriebe_projekt.json
+getriebe_wizard_projekt.json
+

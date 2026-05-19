@@ -1,0 +1,6 @@
+werkstoff,tau_t_zul,sigma_b_zul,Rm,Re,gruppe
+S235JR,18,37,340,215,Baustahl
+E295,26,52,470,275,Baustahl
+E335,32,63,570,315,Baustahl
+C45E,32,64,580,305,Verguetungsstahl
+42CrMo4,55,100,900,650,Verguetungsstahl

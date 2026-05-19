@@ -1,0 +1,7 @@
+name,wert,einheit,beschreibung
+alpha,20,deg,Standard-Eingriffswinkel
+beta,0,deg,Geradverzahnung
+psi_d,1.0,-,Breitenfaktor bezogen auf Teilkreisdurchmesser
+width_factor_m,12,-,Breitenfaktor bezogen auf Modul
+life_required,10000,h,Mindestlebensdauer Lager
+
