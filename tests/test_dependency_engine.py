@@ -41,6 +41,7 @@ class DependencyEngineTests(unittest.TestCase):
         results = recalculate_all(inputs, self.norm_modules, self.bearings)
 
         self.assertAlmostEqual(results.i_target, 1850 / 410)
+        self.assertAlmostEqual(results.i_deviation_percent, (results.i_real - results.i_target) / results.i_target * 100.0)
         self.assertAlmostEqual(results.alpha_transverse_deg, inputs.alpha_deg)
         self.assertAlmostEqual(results.m_theoretical_mm, 2.24, places=2)
         self.assertEqual(results.m_recommended_mm, 2.5)

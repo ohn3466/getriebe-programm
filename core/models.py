@@ -54,6 +54,7 @@ class GearResults:
     z1: int = 0
     z2: int = 0
     i_real: float = 0.0
+    i_deviation_percent: float = 0.0
     n2_real_rpm: float = 0.0
     n2_deviation_percent: float = 0.0
     alpha_transverse_deg: float = 0.0

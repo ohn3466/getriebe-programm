@@ -117,6 +117,7 @@ def recalculate_all(inputs: GearInputs, norm_modules: list[Any], bearings: list[
         inputs.z1,
         inputs.z2_manual,
     )
+    results.i_deviation_percent = (results.i_real - results.i_target) / results.i_target * 100.0
     results.alpha_transverse_deg = calc_transverse_pressure_angle(inputs.alpha_deg, inputs.beta_deg)
 
     pinion = calc_gear_geometry(

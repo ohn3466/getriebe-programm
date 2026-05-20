@@ -24,7 +24,10 @@ class ReportTests(unittest.TestCase):
         report = generate_calculation_report(inputs, results, bearings)
 
         self.assertIn("# Rechenbericht Getriebeauslegung", report)
+        self.assertIn("## Bezeichnungen der berechneten Werte", report)
+        self.assertIn("`Delta_i`", report)
         self.assertIn("`i_soll = n_1 / n_2,soll`", report)
+        self.assertIn("`Delta_i = (i_real - i_soll) / i_soll * 100 %`", report)
         self.assertIn("`m' = (1,8 * d_sh * cos(beta)) / (z_1 - 2,5)`", report)
         self.assertIn("`g_alpha = sqrt((d_a1/2)^2 - (d_b1/2)^2)", report)
         self.assertIn("g_alpha = 12,831 mm", report)
@@ -74,6 +77,7 @@ class ReportTests(unittest.TestCase):
 
         titles = [title for title, _ in blocks]
         rendered = "\n".join(formula for _, formulas in blocks for formula in formulas)
+        self.assertIn("Bezeichnungen", titles)
         self.assertIn("Grundrechnung", titles)
         self.assertIn("Zahneingriff", titles)
         self.assertIn(r"g_\alpha", rendered)

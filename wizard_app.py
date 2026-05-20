@@ -392,6 +392,19 @@ st.markdown(
         margin: 0.5rem 0 1rem;
     }
     .wizard-panel strong { color: #111827; }
+    div[data-testid="stExpander"] details summary {
+        background: #075e2d !important;
+        border: 1px solid #064d26 !important;
+        border-radius: 0.45rem !important;
+    }
+    div[data-testid="stExpander"] details summary,
+    div[data-testid="stExpander"] details summary * {
+        color: #ffffff !important;
+        font-weight: 650 !important;
+    }
+    div[data-testid="stExpander"] details summary:hover {
+        background: #05431f !important;
+    }
     div[data-testid="stButton"] > button,
     div[data-testid="stDownloadButton"] > button,
     div[data-testid="stFormSubmitButton"] > button {
@@ -516,6 +529,7 @@ elif step == 2:
         st.metric("m' aus d_sh", f"{results.m_theoretical_mm:.3f} mm")
         st.metric("empfohlener Normmodul", f"{results.m_recommended_mm:g} mm")
         st.metric("z2 aktuell", str(results.z2))
+        st.metric("Abweichung i", f"{results.i_deviation_percent:.2f} %")
 
     next_button()
 

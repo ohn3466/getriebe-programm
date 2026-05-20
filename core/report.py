@@ -79,6 +79,30 @@ def width_rule_text(inputs: GearInputs, results: GearResults) -> tuple[str, str,
     )
 
 
+def symbol_rows() -> list[tuple[str, str]]:
+    return [
+        ("i_soll", "Soll-Uebersetzung aus Antriebsdrehzahl und Soll-Abtriebsdrehzahl"),
+        ("i_real", "reale Uebersetzung aus Zaehnezahlen"),
+        ("Delta_i", "prozentuale Abweichung der realen Uebersetzung von der Soll-Uebersetzung"),
+        ("n_2,real", "reale Abtriebsdrehzahl"),
+        ("Delta_n2", "prozentuale Abweichung der realen Abtriebsdrehzahl von der Soll-Abtriebsdrehzahl"),
+        ("M_1, M_2", "Drehmoment an Antrieb und Abtrieb"),
+        ("d_min", "Mindestwellendurchmesser aus Torsion"),
+        ("m'", "theoretisch erforderlicher Modul"),
+        ("m", "gewaehlter Normmodul"),
+        ("d, d_b, d_a, d_f", "Teilkreis-, Grundkreis-, Kopfkreis- und Fusskreisdurchmesser"),
+        ("b", "Zahnbreite"),
+        ("p_t, p_e", "Stirnteilung und Eingriffsteilung"),
+        ("g_alpha", "Eingriffsstrecke"),
+        ("epsilon_alpha", "Profilueberdeckung"),
+        ("F_t, F_r, F_a", "Tangential-, Radial- und Axialkraft"),
+        ("R_L, R_R", "resultierende Lagerkraft links und rechts"),
+        ("L_10h", "nominelle Lagerlebensdauer"),
+        ("S_0", "statische Lagersicherheit"),
+        ("M_b", "Biegemoment"),
+    ]
+
+
 def generate_calculation_report(inputs: GearInputs, results: GearResults, bearings: list[dict[str, Any]]) -> str:
     left_bearing = find_bearing(bearings, inputs.selected_bearing_left)
     right_bearing = find_bearing(bearings, inputs.selected_bearing_right)
@@ -89,6 +113,10 @@ def generate_calculation_report(inputs: GearInputs, results: GearResults, bearin
         "",
         "Alle Werte sind mit den aktuell im Programm ausgewaehlten Eingaben berechnet.",
         "Dezimalzahlen werden mit Komma geschrieben; Formeln sind in technischer Schreibweise angegeben.",
+        "",
+        "## Bezeichnungen der berechneten Werte",
+        "",
+        *[f"- `{symbol}`: {description}" for symbol, description in symbol_rows()],
         "",
         "## 1. Eingabedaten",
         "",
@@ -174,18 +202,28 @@ def generate_calculation_report(inputs: GearInputs, results: GearResults, bearin
             line_formula(
                 "i_real = z_2 / z_1",
                 f"i_real = {results.z2} / {results.z1}",
-                f"i_real = {de(results.i_real, 4)}",
-            ),
-            "",
-            line_formula(
-                "n_2,real = n_1 / i_real",
-                f"n_2,real = {de(inputs.n1_rpm, 0)} / {de(results.i_real, 4)}",
-                f"n_2,real = {de(results.n2_real_rpm, 2)} 1/min",
-            ),
-            "",
-            f"- Drehzahlabweichung: **`{de(results.n2_deviation_percent, 2)} %`**",
-            "",
-            "## 6. Zahnradgeometrie",
+            f"i_real = {de(results.i_real, 4)}",
+        ),
+        "",
+        line_formula(
+            "Delta_i = (i_real - i_soll) / i_soll * 100 %",
+            f"Delta_i = ({de(results.i_real, 4)} - {de(results.i_target, 4)}) / {de(results.i_target, 4)} * 100 %",
+            f"Delta_i = {de(results.i_deviation_percent, 2)} %",
+        ),
+        "",
+        line_formula(
+            "n_2,real = n_1 / i_real",
+            f"n_2,real = {de(inputs.n1_rpm, 0)} / {de(results.i_real, 4)}",
+            f"n_2,real = {de(results.n2_real_rpm, 2)} 1/min",
+        ),
+        "",
+        line_formula(
+            "Delta_n2 = (n_2,real - n_2,soll) / n_2,soll * 100 %",
+            f"Delta_n2 = ({de(results.n2_real_rpm, 2)} - {de(inputs.n2_target_rpm, 0)}) / {de(inputs.n2_target_rpm, 0)} * 100 %",
+            f"Delta_n2 = {de(results.n2_deviation_percent, 2)} %",
+        ),
+        "",
+        "## 6. Zahnradgeometrie",
             "",
             "### Ritzel",
             "",
@@ -463,6 +501,14 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         rf"\section*{{Rechenbericht Getriebeauslegung: {tex_escape(inputs.project_name)}}}",
         r"Alle Werte wurden mit den aktuell ausgewaehlten Eingaben berechnet.",
         "",
+        r"\section*{Bezeichnungen der berechneten Werte}",
+        r"\begin{tabular}{ll}",
+        *[
+            rf"\texttt{{{tex_escape(symbol)}}} & {tex_escape(description)} \\"
+            for symbol, description in symbol_rows()
+        ],
+        r"\end{tabular}",
+        "",
         r"\section{Eingabedaten}",
         r"\begin{tabular}{ll}",
         rf"Leistung & $P = {tex_num(inputs.power_kw)}\,\mathrm{{kW}}$ \\",
@@ -519,11 +565,18 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         r"i_\mathrm{real} &= \frac{z_2}{z_1} \\",
         rf"    &= \frac{{{results.z2}}}{{{results.z1}}} \\",
         rf"    &= {tex_num(results.i_real, 4)} \\",
+        r"\Delta_i &= \frac{i_\mathrm{real} - i_\mathrm{soll}}{i_\mathrm{soll}} \cdot 100\,\% \\",
+        rf"    &= \frac{{{tex_num(results.i_real, 4)} - {tex_num(results.i_target, 4)}}}{{{tex_num(results.i_target, 4)}}} \cdot 100\,\% \\",
+        rf"    &= {tex_num(results.i_deviation_percent, 2)}\,\% \\",
         r"n_{2,\mathrm{real}} &= \frac{n_1}{i_\mathrm{real}} \\",
         rf"    &= \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(results.i_real, 4)}}} \\",
         rf"    &= {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}",
         r"\end{align*}",
-        rf"Drehzahlabweichung: ${tex_num(results.n2_deviation_percent, 2)}\,\%$",
+        r"\begin{align*}",
+        r"\Delta_{n2} &= \frac{n_{2,\mathrm{real}} - n_{2,\mathrm{soll}}}{n_{2,\mathrm{soll}}} \cdot 100\,\% \\",
+        rf"    &= \frac{{{tex_num(results.n2_real_rpm, 2)} - {tex_num(inputs.n2_target_rpm, 0)}}}{{{tex_num(inputs.n2_target_rpm, 0)}}} \cdot 100\,\% \\",
+        rf"    &= {tex_num(results.n2_deviation_percent, 2)}\,\%",
+        r"\end{align*}",
         "",
         r"\section{Zahnradgeometrie}",
         r"\subsection{Ritzel}",
@@ -732,6 +785,14 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
 
     return [
         (
+            "Bezeichnungen",
+            [
+                r"\begin{aligned}\text{Die wichtigsten berechneten Werte werden im Bericht einmal ausgeschrieben.}\end{aligned}",
+                r"\begin{aligned}i_\mathrm{soll}&=\text{Soll-Uebersetzung},\quad i_\mathrm{real}=\text{reale Uebersetzung},\quad \Delta_i=\text{Uebersetzungsabweichung}\\ n_{2,\mathrm{real}}&=\text{reale Abtriebsdrehzahl},\quad \Delta_{n2}=\text{Drehzahlabweichung}\end{aligned}",
+                r"\begin{aligned}F_t,F_r,F_a&=\text{Tangential-, Radial- und Axialkraft}\\ R_L,R_R&=\text{resultierende Lagerkraefte},\quad L_{10h}=\text{Lagerlebensdauer},\quad S_0=\text{statische Lagersicherheit}\end{aligned}",
+            ],
+        ),
+        (
             "Grundrechnung",
             [
                 rf"\begin{{aligned}}i_\mathrm{{soll}} &= \frac{{n_1}}{{n_{{2,\mathrm{{soll}}}}}} = \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(inputs.n2_target_rpm, 0)}}} = {tex_num(results.i_target, 4)}\end{{aligned}}",
@@ -746,7 +807,7 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
                 rf"\begin{{aligned}}{module_formula} &= \frac{{{tex_num(module_factor, 1)}\cdot {tex_num(inputs.d_sh_pinion_mm)}\cdot \cos({tex_num(inputs.beta_deg)}^\circ)}}{{{results.z1}-2{{,}}5}} = {tex_num(results.m_theoretical_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
                 rf"m_\mathrm{{Norm,empfohlen}} = {tex_num(results.m_recommended_mm)}\,\mathrm{{mm}}\qquad m_\mathrm{{gewaehlt}} = {tex_num(results.m_selected_mm)}\,\mathrm{{mm}}",
                 z2_formula,
-                rf"\begin{{aligned}}i_\mathrm{{real}} &= \frac{{z_2}}{{z_1}} = \frac{{{results.z2}}}{{{results.z1}}} = {tex_num(results.i_real, 4)}\\ n_{{2,\mathrm{{real}}}} &= \frac{{n_1}}{{i_\mathrm{{real}}}} = {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}\end{{aligned}}",
+                rf"\begin{{aligned}}i_\mathrm{{real}} &= \frac{{z_2}}{{z_1}} = \frac{{{results.z2}}}{{{results.z1}}} = {tex_num(results.i_real, 4)}\\ \Delta_i &= \frac{{i_\mathrm{{real}}-i_\mathrm{{soll}}}}{{i_\mathrm{{soll}}}}\cdot 100\,\% = {tex_num(results.i_deviation_percent, 2)}\,\%\\ n_{{2,\mathrm{{real}}}} &= \frac{{n_1}}{{i_\mathrm{{real}}}} = {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}\\ \Delta_{{n2}} &= \frac{{n_{{2,\mathrm{{real}}}}-n_{{2,\mathrm{{soll}}}}}}{{n_{{2,\mathrm{{soll}}}}}}\cdot 100\,\% = {tex_num(results.n2_deviation_percent, 2)}\,\%\end{{aligned}}",
             ],
         ),
         (

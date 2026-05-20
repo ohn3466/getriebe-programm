@@ -579,10 +579,11 @@ with module_tab:
     col3.metric("m gewaehlt", f"{results.m_selected_mm:g} mm")
     col4.metric("z2", f"{results.z2}")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     col1.metric("i real", f"{results.i_real:.4g}")
     col2.metric("n2 real", f"{results.n2_real_rpm:.2f} 1/min")
-    col3.metric("Abweichung", f"{results.n2_deviation_percent:.2f} %")
+    col3.metric("Abweichung i", f"{results.i_deviation_percent:.2f} %")
+    col4.metric("Abweichung n2", f"{results.n2_deviation_percent:.2f} %")
 
     module_df = build_norm_module_table(
         norm_module_rows,
