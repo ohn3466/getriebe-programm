@@ -393,31 +393,35 @@ st.markdown(
     }
     .wizard-panel strong { color: #111827; }
     div[data-testid="stButton"] > button,
-    div[data-testid="stDownloadButton"] > button {
-        background: #147d3f !important;
+    div[data-testid="stDownloadButton"] > button,
+    div[data-testid="stFormSubmitButton"] > button {
+        background: #075e2d !important;
         color: #ffffff !important;
-        border: 1px solid #0f6b35 !important;
+        border: 1px solid #064d26 !important;
         border-radius: 0.45rem !important;
         font-weight: 650 !important;
         box-shadow: none !important;
     }
     div[data-testid="stButton"] > button:hover,
-    div[data-testid="stDownloadButton"] > button:hover {
-        background: #0f6b35 !important;
+    div[data-testid="stDownloadButton"] > button:hover,
+    div[data-testid="stFormSubmitButton"] > button:hover {
+        background: #05431f !important;
         color: #ffffff !important;
-        border-color: #0b5a2c !important;
+        border-color: #043619 !important;
     }
     div[data-testid="stButton"] > button:focus,
-    div[data-testid="stDownloadButton"] > button:focus {
+    div[data-testid="stDownloadButton"] > button:focus,
+    div[data-testid="stFormSubmitButton"] > button:focus {
         color: #ffffff !important;
-        border-color: #054f31 !important;
-        box-shadow: 0 0 0 0.14rem rgba(20, 125, 63, 0.22) !important;
+        border-color: #ffffff !important;
+        box-shadow: 0 0 0 0.16rem rgba(7, 94, 45, 0.35) !important;
     }
     div[data-testid="stButton"] > button:disabled,
-    div[data-testid="stDownloadButton"] > button:disabled {
-        background: #e5e7eb !important;
-        color: #667085 !important;
-        border-color: #d0d5dd !important;
+    div[data-testid="stDownloadButton"] > button:disabled,
+    div[data-testid="stFormSubmitButton"] > button:disabled {
+        background: #f3f4f6 !important;
+        color: #374151 !important;
+        border-color: #9ca3af !important;
     }
     .status-badge {
         display: inline-block;

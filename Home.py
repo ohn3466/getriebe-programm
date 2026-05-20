@@ -14,16 +14,26 @@ st.markdown(
     .block-container, .block-container h1, .block-container h2,
     .block-container h3, .block-container p, .block-container li,
     .block-container span { color: #111827; }
-    div[data-testid="stButton"] > button {
-        background: #147d3f !important;
+    div[data-testid="stButton"] > button,
+    div[data-testid="stPageLink"] a {
+        background: #075e2d !important;
         color: #ffffff !important;
-        border: 1px solid #0f6b35 !important;
+        border: 1px solid #064d26 !important;
         border-radius: 0.45rem !important;
         font-weight: 650 !important;
+        text-decoration: none !important;
     }
-    div[data-testid="stButton"] > button:hover {
-        background: #0f6b35 !important;
+    div[data-testid="stButton"] > button:hover,
+    div[data-testid="stPageLink"] a:hover {
+        background: #05431f !important;
         color: #ffffff !important;
+        border-color: #043619 !important;
+    }
+    div[data-testid="stButton"] > button:focus,
+    div[data-testid="stPageLink"] a:focus {
+        color: #ffffff !important;
+        border-color: #ffffff !important;
+        box-shadow: 0 0 0 0.16rem rgba(7, 94, 45, 0.35) !important;
     }
     </style>
     """,
@@ -58,4 +68,3 @@ st.write(
     "- Zahnradgeometrie, Zahneingriff, Kraefte, Lagerkraefte und Schnittlasten\n"
     "- Export als JSON, Markdown und LaTeX"
 )
-
