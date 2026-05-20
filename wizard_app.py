@@ -95,6 +95,54 @@ def find_bearing(bearings: list[dict[str, Any]], name: str | None) -> dict[str, 
     return None
 
 
+def all_bearings(base_bearings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    custom = st.session_state.get("custom_bearings", [])
+    merged = {str(bearing["lager"]): bearing for bearing in base_bearings}
+    for bearing in custom:
+        merged[str(bearing["lager"])] = bearing
+    return list(merged.values())
+
+
+def render_custom_bearing_form(prefix: str) -> None:
+    with st.expander("Eigenes Lager hinzufuegen", expanded=False):
+        st.caption("Werte C und C0 bitte in kN eintragen. Ein Lager mit gleichem Namen wird ersetzt.")
+        with st.form(f"{prefix}_custom_bearing_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                name = st.text_input("Lagerbezeichnung", key=f"{prefix}_custom_bearing_name")
+                bore = st.number_input("Bohrung d [mm]", min_value=1.0, step=1.0, key=f"{prefix}_custom_bearing_d")
+                outer = st.number_input("Aussendurchmesser D [mm]", min_value=1.0, step=1.0, key=f"{prefix}_custom_bearing_D")
+            with col2:
+                width = st.number_input("Breite B [mm]", min_value=1.0, step=1.0, key=f"{prefix}_custom_bearing_B")
+                dynamic = st.number_input("Dynamische Tragzahl C [kN]", min_value=0.01, step=0.5, key=f"{prefix}_custom_bearing_C")
+                static = st.number_input("Statische Tragzahl C0 [kN]", min_value=0.01, step=0.5, key=f"{prefix}_custom_bearing_C0")
+            bearing_type = st.text_input("Typ", value="Rillenkugellager", key=f"{prefix}_custom_bearing_type")
+            submitted = st.form_submit_button("Lager hinzufuegen")
+
+        if submitted:
+            clean_name = name.strip()
+            if not clean_name:
+                st.error("Bitte eine Lagerbezeichnung eintragen.")
+            else:
+                bearing = {
+                    "lager": clean_name,
+                    "d": float(bore),
+                    "D": float(outer),
+                    "B": float(width),
+                    "C": float(dynamic),
+                    "C0": float(static),
+                    "typ": bearing_type.strip() or "Rillenkugellager",
+                }
+                custom = [item for item in st.session_state.custom_bearings if str(item["lager"]) != clean_name]
+                custom.append(bearing)
+                st.session_state.custom_bearings = custom
+                st.success(f"Lager {clean_name} hinzugefuegt.")
+                st.rerun()
+
+        if st.session_state.custom_bearings:
+            st.dataframe(pd.DataFrame(st.session_state.custom_bearings), width="stretch", hide_index=True)
+
+
 def fmt(value: float | None, digits: int = 3, unit: str = "") -> str:
     if value is None:
         return "-"
@@ -107,6 +155,7 @@ def fmt(value: float | None, digits: int = 3, unit: str = "") -> str:
 def init_state() -> None:
     for key, value in WIZARD_DEFAULTS.items():
         st.session_state.setdefault(f"wizard_{key}", value)
+    st.session_state.setdefault("custom_bearings", [])
 
 
 def preserve_wizard_state() -> None:
@@ -371,7 +420,7 @@ init_state()
 preserve_wizard_state()
 materials = load_materials()
 norm_module_rows = load_norm_rows_cached()
-bearings = load_bearings_cached()
+bearings = all_bearings(load_bearings_cached())
 inputs = current_inputs(materials)
 results = recalculate_all(inputs, norm_module_rows, bearings)
 
@@ -521,6 +570,7 @@ elif step == 4:
 
 elif step == 5:
     st.header("6. Lager, Lagerabstaende und Kraefte")
+    render_custom_bearing_form("wizard")
     col1, col2 = st.columns(2)
     with col1:
         st.number_input("Abstand linkes Lager bis Zahnrad [mm]", min_value=1.0, step=5.0, key="wizard_bearing_distance_left_mm")

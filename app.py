@@ -62,6 +62,7 @@ DASHBOARD_DEFAULTS = {
 def init_dashboard_state() -> None:
     for key, value in DASHBOARD_DEFAULTS.items():
         st.session_state.setdefault(f"dashboard_{key}", value)
+    st.session_state.setdefault("custom_bearings", [])
 
 
 def preserve_dashboard_state() -> None:
@@ -101,6 +102,70 @@ def find_material(materials: list[dict[str, Any]], name: str) -> dict[str, Any]:
 
 def matching_bearings(bearings: list[dict[str, Any]], bore_mm: float) -> list[dict[str, Any]]:
     return [bearing for bearing in bearings if float(bearing["d"]) == float(bore_mm)]
+
+
+def find_bearing_by_name(bearings: list[dict[str, Any]], name: str | None) -> dict[str, Any] | None:
+    if not name or name == "Keine Auswahl":
+        return None
+    for bearing in bearings:
+        if str(bearing["lager"]) == str(name):
+            return bearing
+    return None
+
+
+def all_bearings(base_bearings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    custom = st.session_state.get("custom_bearings", [])
+    merged = {str(bearing["lager"]): bearing for bearing in base_bearings}
+    for bearing in custom:
+        merged[str(bearing["lager"])] = bearing
+    return list(merged.values())
+
+
+def bearing_names_for_selectbox(bearings: list[dict[str, Any]], bore_mm: float, current: str | None) -> list[str]:
+    names = ["Keine Auswahl"] + [str(bearing["lager"]) for bearing in matching_bearings(bearings, bore_mm)]
+    if current and current != "Keine Auswahl" and current not in names and find_bearing_by_name(bearings, current):
+        names.append(current)
+    return names
+
+
+def render_custom_bearing_form(prefix: str) -> None:
+    with st.expander("Eigenes Lager hinzufuegen", expanded=False):
+        st.caption("Werte C und C0 bitte in kN eintragen. Ein Lager mit gleichem Namen wird ersetzt.")
+        with st.form(f"{prefix}_custom_bearing_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                name = st.text_input("Lagerbezeichnung", key=f"{prefix}_custom_bearing_name")
+                bore = st.number_input("Bohrung d [mm]", min_value=1.0, step=1.0, key=f"{prefix}_custom_bearing_d")
+                outer = st.number_input("Aussendurchmesser D [mm]", min_value=1.0, step=1.0, key=f"{prefix}_custom_bearing_D")
+            with col2:
+                width = st.number_input("Breite B [mm]", min_value=1.0, step=1.0, key=f"{prefix}_custom_bearing_B")
+                dynamic = st.number_input("Dynamische Tragzahl C [kN]", min_value=0.01, step=0.5, key=f"{prefix}_custom_bearing_C")
+                static = st.number_input("Statische Tragzahl C0 [kN]", min_value=0.01, step=0.5, key=f"{prefix}_custom_bearing_C0")
+            bearing_type = st.text_input("Typ", value="Rillenkugellager", key=f"{prefix}_custom_bearing_type")
+            submitted = st.form_submit_button("Lager hinzufuegen")
+
+        if submitted:
+            clean_name = name.strip()
+            if not clean_name:
+                st.error("Bitte eine Lagerbezeichnung eintragen.")
+            else:
+                bearing = {
+                    "lager": clean_name,
+                    "d": float(bore),
+                    "D": float(outer),
+                    "B": float(width),
+                    "C": float(dynamic),
+                    "C0": float(static),
+                    "typ": bearing_type.strip() or "Rillenkugellager",
+                }
+                custom = [item for item in st.session_state.custom_bearings if str(item["lager"]) != clean_name]
+                custom.append(bearing)
+                st.session_state.custom_bearings = custom
+                st.success(f"Lager {clean_name} hinzugefuegt.")
+                st.rerun()
+
+        if st.session_state.custom_bearings:
+            st.dataframe(pd.DataFrame(st.session_state.custom_bearings), width="stretch", hide_index=True)
 
 
 def dataframe_from_checks(checks: list[Any]) -> pd.DataFrame:
@@ -309,7 +374,7 @@ preserve_dashboard_state()
 materials = load_materials()
 norm_modules = load_norms_cached()
 norm_module_rows = load_norm_rows_cached()
-bearings = load_bearings_cached()
+bearings = all_bearings(load_bearings_cached())
 
 with st.sidebar:
     st.header("Eingaben")
@@ -395,21 +460,26 @@ with st.sidebar:
     bearing_life_required_h = st.number_input(
         "Mindestlebensdauer L10h [h]", min_value=1.0, step=1000.0, key="dashboard_bearing_life_required_h"
     )
-
-left_options = matching_bearings(bearings, bearing_seat_left_mm)
-right_options = matching_bearings(bearings, bearing_seat_right_mm)
+    render_custom_bearing_form("dashboard")
 
 with st.sidebar:
-    left_names = ["Keine Auswahl"] + [str(bearing["lager"]) for bearing in left_options]
-    right_names = ["Keine Auswahl"] + [str(bearing["lager"]) for bearing in right_options]
-    if st.session_state.dashboard_selected_bearing_left not in left_names:
-        st.session_state.dashboard_selected_bearing_left = "Keine Auswahl"
-    if st.session_state.dashboard_selected_bearing_right not in right_names:
-        st.session_state.dashboard_selected_bearing_right = "Keine Auswahl"
+    left_names = bearing_names_for_selectbox(
+        bearings,
+        bearing_seat_left_mm,
+        st.session_state.dashboard_selected_bearing_left,
+    )
+    right_names = bearing_names_for_selectbox(
+        bearings,
+        bearing_seat_right_mm,
+        st.session_state.dashboard_selected_bearing_right,
+    )
     selected_bearing_left = st.selectbox("Lager links", left_names, key="dashboard_selected_bearing_left")
     selected_bearing_right = st.selectbox("Lager rechts", right_names, key="dashboard_selected_bearing_right")
     selected_bearing_left = None if selected_bearing_left == "Keine Auswahl" else selected_bearing_left
     selected_bearing_right = None if selected_bearing_right == "Keine Auswahl" else selected_bearing_right
+
+left_options = matching_bearings(bearings, bearing_seat_left_mm)
+right_options = matching_bearings(bearings, bearing_seat_right_mm)
 
 inputs = GearInputs(
     project_name=project_name,
