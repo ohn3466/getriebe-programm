@@ -36,8 +36,54 @@ def tex_escape(text: str) -> str:
     return "".join(replacements.get(char, char) for char in text)
 
 
+def formula_title(formula: str) -> str:
+    key = formula.split("=")[0].strip()
+    titles = {
+        "i_soll": "Soll-Uebersetzung",
+        "M": "Drehmoment",
+        "M_2": "ideales Abtriebsdrehmoment",
+        "d_min": "Mindestwellendurchmesser",
+        "m'": "theoretisch erforderlicher Modul",
+        "z_2": "Zaehnezahl Gegenrad",
+        "i_real": "reale Uebersetzung",
+        "Delta_i": "Abweichung der realen Uebersetzung von der Soll-Uebersetzung",
+        "n_2,real": "reale Abtriebsdrehzahl",
+        "Delta_n2": "Abweichung der realen Abtriebsdrehzahl von der Soll-Abtriebsdrehzahl",
+        "d_1": "Teilkreisdurchmesser Ritzel",
+        "d_b1": "Grundkreisdurchmesser Ritzel",
+        "d_a1": "Kopfkreisdurchmesser Ritzel",
+        "d_f1": "Fusskreisdurchmesser Ritzel",
+        "b_1": "Zahnbreite Ritzel",
+        "d_2": "Teilkreisdurchmesser Gegenrad",
+        "d_b2": "Grundkreisdurchmesser Gegenrad",
+        "d_a2": "Kopfkreisdurchmesser Gegenrad",
+        "d_f2": "Fusskreisdurchmesser Gegenrad",
+        "b_2": "Zahnbreite Gegenrad",
+        "a": "Achsabstand",
+        "p_t": "Stirnteilung",
+        "p_e": "Eingriffsteilung",
+        "g_alpha": "Eingriffsstrecke",
+        "epsilon_alpha": "Profilueberdeckung",
+        "F_t": "Tangentialkraft",
+        "F_r": "Radialkraft",
+        "F_a": "Axialkraft",
+        "R_L,t": "tangentiale Lagerreaktion links",
+        "R_R,t": "tangentiale Lagerreaktion rechts",
+        "R_L": "resultierende Lagerkraft links",
+        "R_R": "resultierende Lagerkraft rechts",
+        "L_10h,links": "Lagerlebensdauer links",
+        "S_0,links": "statische Lagersicherheit links",
+        "L_10h,rechts": "Lagerlebensdauer rechts",
+        "S_0,rechts": "statische Lagersicherheit rechts",
+        "M_b,t,max": "maximales tangentiales Biegemoment",
+        "M_b,r,max": "maximales radiales Biegemoment",
+        "M_b,res": "resultierendes Biegemoment",
+    }
+    return titles.get(key, key)
+
+
 def line_formula(formula: str, substitution: str, result: str) -> str:
-    return f"- `{formula}`\n  - Einsetzen: `{substitution}`\n  - Ergebnis: **{result}**"
+    return f"- **Berechnet: {formula_title(formula)}**\n  - Formel: `{formula}`\n  - Einsetzen: `{substitution}`\n  - Ergebnis: **{result}**"
 
 
 def bearing_label(bearing: dict[str, Any] | None) -> str:
@@ -79,30 +125,6 @@ def width_rule_text(inputs: GearInputs, results: GearResults) -> tuple[str, str,
     )
 
 
-def symbol_rows() -> list[tuple[str, str]]:
-    return [
-        ("i_soll", "Soll-Uebersetzung aus Antriebsdrehzahl und Soll-Abtriebsdrehzahl"),
-        ("i_real", "reale Uebersetzung aus Zaehnezahlen"),
-        ("Delta_i", "prozentuale Abweichung der realen Uebersetzung von der Soll-Uebersetzung"),
-        ("n_2,real", "reale Abtriebsdrehzahl"),
-        ("Delta_n2", "prozentuale Abweichung der realen Abtriebsdrehzahl von der Soll-Abtriebsdrehzahl"),
-        ("M_1, M_2", "Drehmoment an Antrieb und Abtrieb"),
-        ("d_min", "Mindestwellendurchmesser aus Torsion"),
-        ("m'", "theoretisch erforderlicher Modul"),
-        ("m", "gewaehlter Normmodul"),
-        ("d, d_b, d_a, d_f", "Teilkreis-, Grundkreis-, Kopfkreis- und Fusskreisdurchmesser"),
-        ("b", "Zahnbreite"),
-        ("p_t, p_e", "Stirnteilung und Eingriffsteilung"),
-        ("g_alpha", "Eingriffsstrecke"),
-        ("epsilon_alpha", "Profilueberdeckung"),
-        ("F_t, F_r, F_a", "Tangential-, Radial- und Axialkraft"),
-        ("R_L, R_R", "resultierende Lagerkraft links und rechts"),
-        ("L_10h", "nominelle Lagerlebensdauer"),
-        ("S_0", "statische Lagersicherheit"),
-        ("M_b", "Biegemoment"),
-    ]
-
-
 def generate_calculation_report(inputs: GearInputs, results: GearResults, bearings: list[dict[str, Any]]) -> str:
     left_bearing = find_bearing(bearings, inputs.selected_bearing_left)
     right_bearing = find_bearing(bearings, inputs.selected_bearing_right)
@@ -113,10 +135,6 @@ def generate_calculation_report(inputs: GearInputs, results: GearResults, bearin
         "",
         "Alle Werte sind mit den aktuell im Programm ausgewaehlten Eingaben berechnet.",
         "Dezimalzahlen werden mit Komma geschrieben; Formeln sind in technischer Schreibweise angegeben.",
-        "",
-        "## Bezeichnungen der berechneten Werte",
-        "",
-        *[f"- `{symbol}`: {description}" for symbol, description in symbol_rows()],
         "",
         "## 1. Eingabedaten",
         "",
@@ -501,14 +519,6 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         rf"\section*{{Rechenbericht Getriebeauslegung: {tex_escape(inputs.project_name)}}}",
         r"Alle Werte wurden mit den aktuell ausgewaehlten Eingaben berechnet.",
         "",
-        r"\section*{Bezeichnungen der berechneten Werte}",
-        r"\begin{tabular}{ll}",
-        *[
-            rf"\texttt{{{tex_escape(symbol)}}} & {tex_escape(description)} \\"
-            for symbol, description in symbol_rows()
-        ],
-        r"\end{tabular}",
-        "",
         r"\section{Eingabedaten}",
         r"\begin{tabular}{ll}",
         rf"Leistung & $P = {tex_num(inputs.power_kw)}\,\mathrm{{kW}}$ \\",
@@ -525,16 +535,19 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         r"\end{tabular}",
         "",
         r"\section{Grundrechnung}",
+        r"\textbf{Berechnet: Soll-Uebersetzung}",
         r"\begin{align*}",
         r"i_\mathrm{soll} &= \frac{n_1}{n_{2,\mathrm{soll}}} \\",
         rf"    &= \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(inputs.n2_target_rpm, 0)}}} \\",
         rf"    &= {tex_num(results.i_target, 4)}",
         r"\end{align*}",
+        r"\textbf{Berechnet: Antriebsdrehmoment}",
         r"\begin{align*}",
         r"M_1 &= \frac{P}{2\pi n_1} \\",
         rf"    &= \frac{{{tex_num(inputs.power_kw)} \cdot 1000\,\mathrm{{W}}}}{{2\pi \cdot ({tex_num(inputs.n1_rpm, 0)}/60)\,\mathrm{{s^{{-1}}}}}} \\",
         rf"    &= {tex_num(results.M1_Nm, 2)}\,\mathrm{{Nm}}",
         r"\end{align*}",
+        r"\textbf{Berechnet: ideales Abtriebsdrehmoment}",
         r"\begin{align*}",
         r"M_2 &= M_1 \cdot i_\mathrm{soll} \\",
         rf"    &= {tex_num(results.M1_Nm, 2)} \cdot {tex_num(results.i_target, 4)} \\",
@@ -542,6 +555,7 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         r"\end{align*}",
         "",
         r"\section{Wellenvordimensionierung}",
+        r"\textbf{Berechnet: Mindestwellendurchmesser}",
         r"\begin{align*}",
         r"d_\mathrm{min} &= \sqrt[3]{\frac{16M}{\pi \tau_{t,\mathrm{zul}}}} \\",
         rf"d_{{\mathrm{{min}},1}} &= \sqrt[3]{{\frac{{16 \cdot {tex_num(results.M1_Nm * 1000, 1)}\,\mathrm{{Nmm}}}}{{\pi \cdot {tex_num(inputs.tau_t_zul)}\,\mathrm{{N/mm^2}}}}}} \\",
@@ -551,6 +565,7 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         r"\end{align*}",
         "",
         r"\section{Modulbestimmung}",
+        r"\textbf{Berechnet: theoretisch erforderlicher Modul}",
         r"\begin{align*}",
         module_formula + r" \\",
         rf"    &= \frac{{{tex_num(module_factor, 1)} \cdot {tex_num(inputs.d_sh_pinion_mm)}\,\mathrm{{mm}} \cdot \cos({tex_num(inputs.beta_deg)}^\circ)}}{{{results.z1} - 2{{,}}5}} \\",
@@ -560,7 +575,9 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         rf"Gewaehlter Normmodul: $m = {tex_num(results.m_selected_mm)}\,\mathrm{{mm}}$",
         "",
         r"\section{Zaehnezahlen und reale Uebersetzung}",
+        r"\textbf{Berechnet: Zaehnezahl Gegenrad}",
         *z2_lines,
+        r"\textbf{Berechnet: reale Uebersetzung, Uebersetzungsabweichung und reale Abtriebsdrehzahl}",
         r"\begin{align*}",
         r"i_\mathrm{real} &= \frac{z_2}{z_1} \\",
         rf"    &= \frac{{{results.z2}}}{{{results.z1}}} \\",
@@ -572,6 +589,7 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         rf"    &= \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(results.i_real, 4)}}} \\",
         rf"    &= {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}",
         r"\end{align*}",
+        r"\textbf{Berechnet: Drehzahlabweichung}",
         r"\begin{align*}",
         r"\Delta_{n2} &= \frac{n_{2,\mathrm{real}} - n_{2,\mathrm{soll}}}{n_{2,\mathrm{soll}}} \cdot 100\,\% \\",
         rf"    &= \frac{{{tex_num(results.n2_real_rpm, 2)} - {tex_num(inputs.n2_target_rpm, 0)}}}{{{tex_num(inputs.n2_target_rpm, 0)}}} \cdot 100\,\% \\",
@@ -580,6 +598,7 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         "",
         r"\section{Zahnradgeometrie}",
         r"\subsection{Ritzel}",
+        r"\textbf{Berechnet: Ritzel-Durchmesser}",
         r"\begin{align*}",
         r"d_1 &= \frac{m_n \cdot z_1}{\cos(\beta)} \\",
         rf"    &= \frac{{{tex_num(results.m_selected_mm)} \cdot {results.z1}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} \\",
@@ -594,10 +613,12 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         rf"    &= {tex_num(results.d1_mm)} - 2{{,}}5 \cdot {tex_num(results.m_selected_mm)} \\",
         rf"    &= {tex_num(results.df1_mm)}\,\mathrm{{mm}}",
         r"\end{align*}",
+        r"\textbf{Berechnet: Zahnbreite Ritzel}",
         r"\begin{align*}",
         *width_formula,
         r"\end{align*}",
         r"\subsection{Gegenrad}",
+        r"\textbf{Berechnet: Gegenrad-Durchmesser}",
         r"\begin{align*}",
         r"d_2 &= \frac{m_n \cdot z_2}{\cos(\beta)} \\",
         rf"    &= \frac{{{tex_num(results.m_selected_mm)} \cdot {results.z2}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} \\",
@@ -750,12 +771,12 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
 
     z2_formula = (
         rf"\begin{{aligned}}"
-        rf"z_2 &= \operatorname{{round}}(i_\mathrm{{soll}}\cdot z_1) \\"
+        rf"\text{{Zaehnezahl Gegenrad:}}\quad z_2 &= \operatorname{{round}}(i_\mathrm{{soll}}\cdot z_1) \\"
         rf"&= \operatorname{{round}}({tex_num(results.i_target, 4)}\cdot {results.z1}) \\"
         rf"&= {results.z2}"
         rf"\end{{aligned}}"
         if inputs.z2_manual is None
-        else rf"z_2 = {results.z2}\quad\text{{(manuell gewaehlt)}}"
+        else rf"\text{{Zaehnezahl Gegenrad:}}\quad z_2 = {results.z2}\quad\text{{(manuell gewaehlt)}}"
     )
 
     bearing_life_blocks: list[str] = []
@@ -785,29 +806,21 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
 
     return [
         (
-            "Bezeichnungen",
-            [
-                r"\begin{aligned}\text{Die wichtigsten berechneten Werte werden im Bericht einmal ausgeschrieben.}\end{aligned}",
-                r"\begin{aligned}i_\mathrm{soll}&=\text{Soll-Uebersetzung},\quad i_\mathrm{real}=\text{reale Uebersetzung},\quad \Delta_i=\text{Uebersetzungsabweichung}\\ n_{2,\mathrm{real}}&=\text{reale Abtriebsdrehzahl},\quad \Delta_{n2}=\text{Drehzahlabweichung}\end{aligned}",
-                r"\begin{aligned}F_t,F_r,F_a&=\text{Tangential-, Radial- und Axialkraft}\\ R_L,R_R&=\text{resultierende Lagerkraefte},\quad L_{10h}=\text{Lagerlebensdauer},\quad S_0=\text{statische Lagersicherheit}\end{aligned}",
-            ],
-        ),
-        (
             "Grundrechnung",
             [
-                rf"\begin{{aligned}}i_\mathrm{{soll}} &= \frac{{n_1}}{{n_{{2,\mathrm{{soll}}}}}} = \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(inputs.n2_target_rpm, 0)}}} = {tex_num(results.i_target, 4)}\end{{aligned}}",
-                rf"\begin{{aligned}}M_1 &= \frac{{P}}{{2\pi n_1}} = \frac{{{tex_num(inputs.power_kw)}\cdot1000}}{{2\pi\cdot({tex_num(inputs.n1_rpm, 0)}/60)}} = {tex_num(results.M1_Nm, 2)}\,\mathrm{{Nm}}\end{{aligned}}",
-                rf"\begin{{aligned}}M_2 &= M_1\cdot i_\mathrm{{soll}} = {tex_num(results.M1_Nm, 2)}\cdot {tex_num(results.i_target, 4)} = {tex_num(results.M2_Nm, 2)}\,\mathrm{{Nm}}\end{{aligned}}",
-                rf"\begin{{aligned}}d_{{\min,1}} &= \sqrt[3]{{\frac{{16M_1}}{{\pi\tau_{{t,\mathrm{{zul}}}}}}}} = {tex_num(results.d_min_shaft_1_mm, 2)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Soll-Uebersetzung:}}\quad i_\mathrm{{soll}} &= \frac{{n_1}}{{n_{{2,\mathrm{{soll}}}}}} = \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(inputs.n2_target_rpm, 0)}}} = {tex_num(results.i_target, 4)}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Antriebsdrehmoment:}}\quad M_1 &= \frac{{P}}{{2\pi n_1}} = \frac{{{tex_num(inputs.power_kw)}\cdot1000}}{{2\pi\cdot({tex_num(inputs.n1_rpm, 0)}/60)}} = {tex_num(results.M1_Nm, 2)}\,\mathrm{{Nm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{ideales Abtriebsdrehmoment:}}\quad M_2 &= M_1\cdot i_\mathrm{{soll}} = {tex_num(results.M1_Nm, 2)}\cdot {tex_num(results.i_target, 4)} = {tex_num(results.M2_Nm, 2)}\,\mathrm{{Nm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Mindestwellendurchmesser:}}\quad d_{{\min,1}} &= \sqrt[3]{{\frac{{16M_1}}{{\pi\tau_{{t,\mathrm{{zul}}}}}}}} = {tex_num(results.d_min_shaft_1_mm, 2)}\,\mathrm{{mm}}\end{{aligned}}",
             ],
         ),
         (
             "Modul und Zaehne",
             [
-                rf"\begin{{aligned}}{module_formula} &= \frac{{{tex_num(module_factor, 1)}\cdot {tex_num(inputs.d_sh_pinion_mm)}\cdot \cos({tex_num(inputs.beta_deg)}^\circ)}}{{{results.z1}-2{{,}}5}} = {tex_num(results.m_theoretical_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
-                rf"m_\mathrm{{Norm,empfohlen}} = {tex_num(results.m_recommended_mm)}\,\mathrm{{mm}}\qquad m_\mathrm{{gewaehlt}} = {tex_num(results.m_selected_mm)}\,\mathrm{{mm}}",
+                rf"\begin{{aligned}}\text{{theoretisch erforderlicher Modul:}}\quad {module_formula} &= \frac{{{tex_num(module_factor, 1)}\cdot {tex_num(inputs.d_sh_pinion_mm)}\cdot \cos({tex_num(inputs.beta_deg)}^\circ)}}{{{results.z1}-2{{,}}5}} = {tex_num(results.m_theoretical_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\text{{Normmodul:}}\quad m_\mathrm{{Norm,empfohlen}} = {tex_num(results.m_recommended_mm)}\,\mathrm{{mm}}\qquad m_\mathrm{{gewaehlt}} = {tex_num(results.m_selected_mm)}\,\mathrm{{mm}}",
                 z2_formula,
-                rf"\begin{{aligned}}i_\mathrm{{real}} &= \frac{{z_2}}{{z_1}} = \frac{{{results.z2}}}{{{results.z1}}} = {tex_num(results.i_real, 4)}\\ \Delta_i &= \frac{{i_\mathrm{{real}}-i_\mathrm{{soll}}}}{{i_\mathrm{{soll}}}}\cdot 100\,\% = {tex_num(results.i_deviation_percent, 2)}\,\%\\ n_{{2,\mathrm{{real}}}} &= \frac{{n_1}}{{i_\mathrm{{real}}}} = {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}\\ \Delta_{{n2}} &= \frac{{n_{{2,\mathrm{{real}}}}-n_{{2,\mathrm{{soll}}}}}}{{n_{{2,\mathrm{{soll}}}}}}\cdot 100\,\% = {tex_num(results.n2_deviation_percent, 2)}\,\%\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{reale Uebersetzung:}}\quad i_\mathrm{{real}} &= \frac{{z_2}}{{z_1}} = \frac{{{results.z2}}}{{{results.z1}}} = {tex_num(results.i_real, 4)}\\ \text{{Uebersetzungsabweichung:}}\quad \Delta_i &= \frac{{i_\mathrm{{real}}-i_\mathrm{{soll}}}}{{i_\mathrm{{soll}}}}\cdot 100\,\% = {tex_num(results.i_deviation_percent, 2)}\,\%\\ \text{{reale Abtriebsdrehzahl:}}\quad n_{{2,\mathrm{{real}}}} &= \frac{{n_1}}{{i_\mathrm{{real}}}} = {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}\\ \text{{Drehzahlabweichung:}}\quad \Delta_{{n2}} &= \frac{{n_{{2,\mathrm{{real}}}}-n_{{2,\mathrm{{soll}}}}}}{{n_{{2,\mathrm{{soll}}}}}}\cdot 100\,\% = {tex_num(results.n2_deviation_percent, 2)}\,\%\end{{aligned}}",
             ],
         ),
         (
