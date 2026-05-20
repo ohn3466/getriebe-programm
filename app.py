@@ -129,8 +129,12 @@ def bearing_names_for_selectbox(bearings: list[dict[str, Any]], bore_mm: float, 
 
 
 def render_custom_bearing_form(prefix: str) -> None:
-    with st.expander("Eigenes Lager hinzufuegen", expanded=False):
-        st.caption("Werte C und C0 bitte in kN eintragen. Ein Lager mit gleichem Namen wird ersetzt.")
+    message_key = f"{prefix}_custom_bearing_message"
+    with st.expander("Eigenes Lager hinzufuegen", expanded=True):
+        if st.session_state.get(message_key):
+            st.success(st.session_state[message_key])
+            st.session_state[message_key] = ""
+        st.caption("Werte C und C0 bitte in kN eintragen. Passt d zum Lagersitz, wird das Lager direkt ausgewaehlt.")
         with st.form(f"{prefix}_custom_bearing_form"):
             col1, col2 = st.columns(2)
             with col1:
@@ -148,6 +152,8 @@ def render_custom_bearing_form(prefix: str) -> None:
             clean_name = name.strip()
             if not clean_name:
                 st.error("Bitte eine Lagerbezeichnung eintragen.")
+            elif float(outer) < float(bore):
+                st.error("D muss mindestens so gross wie d sein.")
             else:
                 bearing = {
                     "lager": clean_name,
@@ -161,7 +167,18 @@ def render_custom_bearing_form(prefix: str) -> None:
                 custom = [item for item in st.session_state.custom_bearings if str(item["lager"]) != clean_name]
                 custom.append(bearing)
                 st.session_state.custom_bearings = custom
-                st.success(f"Lager {clean_name} hinzugefuegt.")
+                selected_sides = []
+                for side in ("left", "right"):
+                    seat_key = f"{prefix}_bearing_seat_{side}_mm"
+                    selection_key = f"{prefix}_selected_bearing_{side}"
+                    if seat_key in st.session_state and abs(float(st.session_state[seat_key]) - float(bore)) < 1e-9:
+                        st.session_state[selection_key] = clean_name
+                        selected_sides.append("links" if side == "left" else "rechts")
+                if selected_sides:
+                    side_text = " und ".join(selected_sides)
+                    st.session_state[message_key] = f"Lager {clean_name} hinzugefuegt und {side_text} ausgewaehlt."
+                else:
+                    st.session_state[message_key] = f"Lager {clean_name} hinzugefuegt. Stelle den Lagersitz auf d = {float(bore):g} mm, um es auszuwaehlen."
                 st.rerun()
 
         if st.session_state.custom_bearings:
