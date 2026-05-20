@@ -36,6 +36,15 @@ def tex_escape(text: str) -> str:
     return "".join(replacements.get(char, char) for char in text)
 
 
+def i_deviation_percent(results: GearResults) -> float:
+    value = getattr(results, "i_deviation_percent", None)
+    if value is not None:
+        return float(value)
+    if results.i_target == 0:
+        return 0.0
+    return (results.i_real - results.i_target) / results.i_target * 100.0
+
+
 def formula_title(formula: str) -> str:
     key = formula.split("=")[0].strip()
     titles = {
@@ -250,7 +259,7 @@ def generate_calculation_report(inputs: GearInputs, results: GearResults, bearin
         line_formula(
             "Delta_i = (i_real - i_soll) / i_soll * 100 %",
             f"Delta_i = ({de(results.i_real, 4)} - {de(results.i_target, 4)}) / {de(results.i_target, 4)} * 100 %",
-            f"Delta_i = {de(results.i_deviation_percent, 2)} %",
+            f"Delta_i = {de(i_deviation_percent(results), 2)} %",
         ),
         "",
         line_formula(
@@ -608,7 +617,7 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         rf"    &= {tex_num(results.i_real, 4)} \\",
         r"\Delta_i &= \frac{i_\mathrm{real} - i_\mathrm{soll}}{i_\mathrm{soll}} \cdot 100\,\% \\",
         rf"    &= \frac{{{tex_num(results.i_real, 4)} - {tex_num(results.i_target, 4)}}}{{{tex_num(results.i_target, 4)}}} \cdot 100\,\% \\",
-        rf"    &= {tex_num(results.i_deviation_percent, 2)}\,\% \\",
+        rf"    &= {tex_num(i_deviation_percent(results), 2)}\,\% \\",
         r"n_{2,\mathrm{real}} &= \frac{n_1}{i_\mathrm{real}} \quad\text{(21.9)} \\",
         rf"    &= \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(results.i_real, 4)}}} \\",
         rf"    &= {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}",
@@ -844,7 +853,7 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
                 rf"\begin{{aligned}}\text{{theoretisch erforderlicher Modul:}}\quad {module_formula} &= \frac{{{tex_num(module_factor, 1)}\cdot {tex_num(inputs.d_sh_pinion_mm)}\cdot \cos({tex_num(inputs.beta_deg)}^\circ)}}{{{results.z1}-2{{,}}5}} = {tex_num(results.m_theoretical_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
                 rf"\text{{Normmodul:}}\quad m_\mathrm{{Norm,empfohlen}} = {tex_num(results.m_recommended_mm)}\,\mathrm{{mm}}\qquad m_\mathrm{{gewaehlt}} = {tex_num(results.m_selected_mm)}\,\mathrm{{mm}}",
                 z2_formula,
-                rf"\begin{{aligned}}\text{{reale Uebersetzung:}}\quad i_\mathrm{{real}} &= \frac{{z_2}}{{z_1}}\quad\text{{(21.9)}} = \frac{{{results.z2}}}{{{results.z1}}} = {tex_num(results.i_real, 4)}\\ \text{{Uebersetzungsabweichung:}}\quad \Delta_i &= \frac{{i_\mathrm{{real}}-i_\mathrm{{soll}}}}{{i_\mathrm{{soll}}}}\cdot 100\,\% = {tex_num(results.i_deviation_percent, 2)}\,\%\\ \text{{reale Abtriebsdrehzahl:}}\quad n_{{2,\mathrm{{real}}}} &= \frac{{n_1}}{{i_\mathrm{{real}}}}\quad\text{{(21.9)}} = {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}\\ \text{{Drehzahlabweichung:}}\quad \Delta_{{n2}} &= \frac{{n_{{2,\mathrm{{real}}}}-n_{{2,\mathrm{{soll}}}}}}{{n_{{2,\mathrm{{soll}}}}}}\cdot 100\,\% = {tex_num(results.n2_deviation_percent, 2)}\,\%\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{reale Uebersetzung:}}\quad i_\mathrm{{real}} &= \frac{{z_2}}{{z_1}}\quad\text{{(21.9)}} = \frac{{{results.z2}}}{{{results.z1}}} = {tex_num(results.i_real, 4)}\\ \text{{Uebersetzungsabweichung:}}\quad \Delta_i &= \frac{{i_\mathrm{{real}}-i_\mathrm{{soll}}}}{{i_\mathrm{{soll}}}}\cdot 100\,\% = {tex_num(i_deviation_percent(results), 2)}\,\%\\ \text{{reale Abtriebsdrehzahl:}}\quad n_{{2,\mathrm{{real}}}} &= \frac{{n_1}}{{i_\mathrm{{real}}}}\quad\text{{(21.9)}} = {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}\\ \text{{Drehzahlabweichung:}}\quad \Delta_{{n2}} &= \frac{{n_{{2,\mathrm{{real}}}}-n_{{2,\mathrm{{soll}}}}}}{{n_{{2,\mathrm{{soll}}}}}}\cdot 100\,\% = {tex_num(results.n2_deviation_percent, 2)}\,\%\end{{aligned}}",
             ],
         ),
         (

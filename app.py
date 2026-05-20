@@ -253,6 +253,15 @@ def section_load_dataframe(inputs: GearInputs, results: Any, points: int = 101) 
     )
 
 
+def result_i_deviation_percent(results: Any) -> float:
+    value = getattr(results, "i_deviation_percent", None)
+    if value is not None:
+        return float(value)
+    if results.i_target == 0:
+        return 0.0
+    return (results.i_real - results.i_target) / results.i_target * 100.0
+
+
 def render_live_latex(inputs: GearInputs, results: Any, bearings: list[dict[str, Any]]) -> None:
     st.divider()
     st.header("Live-Rechenweg")
@@ -582,7 +591,7 @@ with module_tab:
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("i real", f"{results.i_real:.4g}")
     col2.metric("n2 real", f"{results.n2_real_rpm:.2f} 1/min")
-    col3.metric("Abweichung i", f"{results.i_deviation_percent:.2f} %")
+    col3.metric("Abweichung i", f"{result_i_deviation_percent(results):.2f} %")
     col4.metric("Abweichung n2", f"{results.n2_deviation_percent:.2f} %")
 
     module_df = build_norm_module_table(

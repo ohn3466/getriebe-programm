@@ -279,6 +279,15 @@ def result_export_json(inputs: GearInputs, results: Any) -> str:
     )
 
 
+def result_i_deviation_percent(results: Any) -> float:
+    value = getattr(results, "i_deviation_percent", None)
+    if value is not None:
+        return float(value)
+    if results.i_target == 0:
+        return 0.0
+    return (results.i_real - results.i_target) / results.i_target * 100.0
+
+
 def render_live_latex(inputs: GearInputs, results: Any, bearings: list[dict[str, Any]]) -> None:
     st.divider()
     st.header("Live-Rechenweg")
@@ -529,7 +538,7 @@ elif step == 2:
         st.metric("m' aus d_sh", f"{results.m_theoretical_mm:.3f} mm")
         st.metric("empfohlener Normmodul", f"{results.m_recommended_mm:g} mm")
         st.metric("z2 aktuell", str(results.z2))
-        st.metric("Abweichung i", f"{results.i_deviation_percent:.2f} %")
+        st.metric("Abweichung i", f"{result_i_deviation_percent(results):.2f} %")
 
     next_button()
 
