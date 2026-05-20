@@ -755,7 +755,7 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
     if inputs.width_rule == "psi_d":
         width_formula = (
             rf"\begin{{aligned}}"
-            rf"b_1 &= \psi_d \cdot d_1 \\"
+            rf"\text{{Zahnbreite Ritzel:}}\quad b_1 &= \psi_d \cdot d_1 \\"
             rf"&= {tex_num(inputs.psi_d)} \cdot {tex_num(results.d1_mm)} \\"
             rf"&= {tex_num(results.b1_mm)}\,\mathrm{{mm}}"
             rf"\end{{aligned}}"
@@ -763,7 +763,7 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
     else:
         width_formula = (
             rf"\begin{{aligned}}"
-            rf"b_1 &= k_b \cdot m \\"
+            rf"\text{{Zahnbreite Ritzel:}}\quad b_1 &= k_b \cdot m \\"
             rf"&= {tex_num(inputs.width_factor_m)} \cdot {tex_num(results.m_selected_mm)} \\"
             rf"&= {tex_num(results.b1_mm)}\,\mathrm{{mm}}"
             rf"\end{{aligned}}"
@@ -783,7 +783,7 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
     if left_bearing is not None:
         bearing_life_blocks.append(
             rf"\begin{{aligned}}"
-            rf"L_{{10h,L}} &= \frac{{10^6}}{{60n}}\left(\frac{{C}}{{P}}\right)^3 \\"
+            rf"\text{{Lagerlebensdauer links:}}\quad L_{{10h,L}} &= \frac{{10^6}}{{60n}}\left(\frac{{C}}{{P}}\right)^3 \\"
             rf"&= \frac{{10^6}}{{60\cdot {tex_num(inputs.n1_rpm, 0)}}}"
             rf"\left(\frac{{{tex_num(float(left_bearing['C']) * 1000, 0)}}}{{{tex_num(results.bearing_load_left_N, 1)}}}\right)^3 \\"
             rf"&= {tex_num(results.bearing_life_left_h, 0)}\,\mathrm{{h}}"
@@ -795,7 +795,7 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
     if right_bearing is not None:
         bearing_life_blocks.append(
             rf"\begin{{aligned}}"
-            rf"L_{{10h,R}} &= \frac{{10^6}}{{60n}}\left(\frac{{C}}{{P}}\right)^3 \\"
+            rf"\text{{Lagerlebensdauer rechts:}}\quad L_{{10h,R}} &= \frac{{10^6}}{{60n}}\left(\frac{{C}}{{P}}\right)^3 \\"
             rf"&= \frac{{10^6}}{{60\cdot {tex_num(inputs.n1_rpm, 0)}}}"
             rf"\left(\frac{{{tex_num(float(right_bearing['C']) * 1000, 0)}}}{{{tex_num(results.bearing_load_right_N, 1)}}}\right)^3 \\"
             rf"&= {tex_num(results.bearing_life_right_h, 0)}\,\mathrm{{h}}"
@@ -826,37 +826,37 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
         (
             "Geometrie",
             [
-                rf"\begin{{aligned}}\alpha_t &= \arctan\left(\frac{{\tan(\alpha)}}{{\cos(\beta)}}\right) = \arctan\left(\frac{{\tan({tex_num(inputs.alpha_deg)}^\circ)}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}}\right) = {tex_num(results.alpha_transverse_deg, 3)}^\circ\end{{aligned}}",
-                rf"\begin{{aligned}}d_1 &= \frac{{m_n z_1}}{{\cos(\beta)}} = \frac{{{tex_num(results.m_selected_mm)}\cdot {results.z1}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} = {tex_num(results.d1_mm)}\,\mathrm{{mm}}\\ d_2 &= \frac{{m_n z_2}}{{\cos(\beta)}} = \frac{{{tex_num(results.m_selected_mm)}\cdot {results.z2}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} = {tex_num(results.d2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
-                rf"\begin{{aligned}}d_{{b1}} &= d_1\cos(\alpha_t) = {tex_num(results.db1_mm)}\,\mathrm{{mm}}\\ d_{{b2}} &= d_2\cos(\alpha_t) = {tex_num(results.db2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
-                rf"\begin{{aligned}}d_{{a1}} &= d_1+2m_n = {tex_num(results.da1_mm)}\,\mathrm{{mm}}\\ d_{{f1}} &= d_1-2{{,}}5m_n = {tex_num(results.df1_mm)}\,\mathrm{{mm}}\end{{aligned}}",
-                rf"\begin{{aligned}}d_{{a2}} &= d_2+2m_n = {tex_num(results.da2_mm)}\,\mathrm{{mm}}\\ d_{{f2}} &= d_2-2{{,}}5m_n = {tex_num(results.df2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Stirneingriffswinkel:}}\quad \alpha_t &= \arctan\left(\frac{{\tan(\alpha)}}{{\cos(\beta)}}\right) = \arctan\left(\frac{{\tan({tex_num(inputs.alpha_deg)}^\circ)}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}}\right) = {tex_num(results.alpha_transverse_deg, 3)}^\circ\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Teilkreisdurchmesser:}}\quad d_1 &= \frac{{m_n z_1}}{{\cos(\beta)}} = \frac{{{tex_num(results.m_selected_mm)}\cdot {results.z1}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} = {tex_num(results.d1_mm)}\,\mathrm{{mm}}\\ d_2 &= \frac{{m_n z_2}}{{\cos(\beta)}} = \frac{{{tex_num(results.m_selected_mm)}\cdot {results.z2}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} = {tex_num(results.d2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Grundkreisdurchmesser:}}\quad d_{{b1}} &= d_1\cos(\alpha_t) = {tex_num(results.db1_mm)}\,\mathrm{{mm}}\\ d_{{b2}} &= d_2\cos(\alpha_t) = {tex_num(results.db2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Kopf- und Fusskreisdurchmesser Ritzel:}}\quad d_{{a1}} &= d_1+2m_n = {tex_num(results.da1_mm)}\,\mathrm{{mm}}\\ d_{{f1}} &= d_1-2{{,}}5m_n = {tex_num(results.df1_mm)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Kopf- und Fusskreisdurchmesser Gegenrad:}}\quad d_{{a2}} &= d_2+2m_n = {tex_num(results.da2_mm)}\,\mathrm{{mm}}\\ d_{{f2}} &= d_2-2{{,}}5m_n = {tex_num(results.df2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
                 width_formula,
-                rf"\begin{{aligned}}a &= \frac{{d_1+d_2}}{{2}} = \frac{{{tex_num(results.d1_mm)}+{tex_num(results.d2_mm)}}}{{2}} = {tex_num(results.center_distance_mm)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Achsabstand:}}\quad a &= \frac{{d_1+d_2}}{{2}} = \frac{{{tex_num(results.d1_mm)}+{tex_num(results.d2_mm)}}}{{2}} = {tex_num(results.center_distance_mm)}\,\mathrm{{mm}}\end{{aligned}}",
             ],
         ),
         (
             "Zahneingriff",
             [
-                rf"\begin{{aligned}}p_t &= \frac{{\pi m_n}}{{\cos(\beta)}} = {tex_num(results.pitch_mm, 3)}\,\mathrm{{mm}}\\ p_e &= p_t\cos(\alpha_t) = {tex_num(results.base_pitch_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
-                rf"\begin{{aligned}}g_\alpha &= \sqrt{{\left(\frac{{d_{{a1}}}}{{2}}\right)^2-\left(\frac{{d_{{b1}}}}{{2}}\right)^2}} + \sqrt{{\left(\frac{{d_{{a2}}}}{{2}}\right)^2-\left(\frac{{d_{{b2}}}}{{2}}\right)^2}} - a\sin(\alpha_t)\\ &= {tex_num(results.path_contact_pinion_mm, 3)} + {tex_num(results.path_contact_wheel_mm, 3)} - {tex_num(results.path_contact_center_subtract_mm, 3)}\\ &= {tex_num(results.path_of_contact_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
-                rf"\begin{{aligned}}\varepsilon_\alpha &= \frac{{g_\alpha}}{{p_e}} = \frac{{{tex_num(results.path_of_contact_mm, 3)}}}{{{tex_num(results.base_pitch_mm, 3)}}} = {tex_num(results.contact_ratio, 3)}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Teilungen:}}\quad p_t &= \frac{{\pi m_n}}{{\cos(\beta)}} = {tex_num(results.pitch_mm, 3)}\,\mathrm{{mm}}\\ p_e &= p_t\cos(\alpha_t) = {tex_num(results.base_pitch_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Eingriffsstrecke:}}\quad g_\alpha &= \sqrt{{\left(\frac{{d_{{a1}}}}{{2}}\right)^2-\left(\frac{{d_{{b1}}}}{{2}}\right)^2}} + \sqrt{{\left(\frac{{d_{{a2}}}}{{2}}\right)^2-\left(\frac{{d_{{b2}}}}{{2}}\right)^2}} - a\sin(\alpha_t)\\ &= {tex_num(results.path_contact_pinion_mm, 3)} + {tex_num(results.path_contact_wheel_mm, 3)} - {tex_num(results.path_contact_center_subtract_mm, 3)}\\ &= {tex_num(results.path_of_contact_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Profilueberdeckung:}}\quad \varepsilon_\alpha &= \frac{{g_\alpha}}{{p_e}} = \frac{{{tex_num(results.path_of_contact_mm, 3)}}}{{{tex_num(results.base_pitch_mm, 3)}}} = {tex_num(results.contact_ratio, 3)}\end{{aligned}}",
             ],
         ),
         (
             "Kraefte",
             [
-                rf"\begin{{aligned}}F_t &= \frac{{2M_1}}{{d_1}} = \frac{{2\cdot {tex_num(results.M1_Nm * 1000, 1)}}}{{{tex_num(results.d1_mm)}}} = {tex_num(results.Ft_N, 1)}\,\mathrm{{N}}\end{{aligned}}",
-                rf"\begin{{aligned}}F_r &= F_t\tan(\alpha_t) = {tex_num(results.Ft_N, 1)}\tan({tex_num(results.alpha_transverse_deg)}^\circ) = {tex_num(results.Fr_N, 1)}\,\mathrm{{N}}\\ F_a &= F_t\tan(\beta) = {tex_num(results.Fa_N, 1)}\,\mathrm{{N}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Tangentialkraft:}}\quad F_t &= \frac{{2M_1}}{{d_1}} = \frac{{2\cdot {tex_num(results.M1_Nm * 1000, 1)}}}{{{tex_num(results.d1_mm)}}} = {tex_num(results.Ft_N, 1)}\,\mathrm{{N}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Radial- und Axialkraft:}}\quad F_r &= F_t\tan(\alpha_t) = {tex_num(results.Ft_N, 1)}\tan({tex_num(results.alpha_transverse_deg)}^\circ) = {tex_num(results.Fr_N, 1)}\,\mathrm{{N}}\\ F_a &= F_t\tan(\beta) = {tex_num(results.Fa_N, 1)}\,\mathrm{{N}}\end{{aligned}}",
             ],
         ),
         (
             "Lager und Schnittlasten",
             [
-                rf"\begin{{aligned}}R_{{L,t}} &= F_t\frac{{a_R}}{{a_L+a_R}} = {tex_num(results.bearing_left_tangential_N, 1)}\,\mathrm{{N}}\\ R_{{R,t}} &= F_t\frac{{a_L}}{{a_L+a_R}} = {tex_num(results.bearing_right_tangential_N, 1)}\,\mathrm{{N}}\end{{aligned}}",
-                rf"\begin{{aligned}}R_L &= \sqrt{{R_{{L,t}}^2+R_{{L,r}}^2}} = {tex_num(results.bearing_load_left_N, 1)}\,\mathrm{{N}}\\ R_R &= \sqrt{{R_{{R,t}}^2+R_{{R,r}}^2}} = {tex_num(results.bearing_load_right_N, 1)}\,\mathrm{{N}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Lagerreaktionen tangential:}}\quad R_{{L,t}} &= F_t\frac{{a_R}}{{a_L+a_R}} = {tex_num(results.bearing_left_tangential_N, 1)}\,\mathrm{{N}}\\ R_{{R,t}} &= F_t\frac{{a_L}}{{a_L+a_R}} = {tex_num(results.bearing_right_tangential_N, 1)}\,\mathrm{{N}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{resultierende Lagerkraefte:}}\quad R_L &= \sqrt{{R_{{L,t}}^2+R_{{L,r}}^2}} = {tex_num(results.bearing_load_left_N, 1)}\,\mathrm{{N}}\\ R_R &= \sqrt{{R_{{R,t}}^2+R_{{R,r}}^2}} = {tex_num(results.bearing_load_right_N, 1)}\,\mathrm{{N}}\end{{aligned}}",
                 *bearing_life_blocks,
-                rf"\begin{{aligned}}M_{{b,\mathrm{{res}}}} &= \sqrt{{M_{{b,t}}^2+M_{{b,r}}^2}} = {tex_num(results.max_bending_resultant_Nmm / 1000, 2)}\,\mathrm{{Nm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{resultierendes Biegemoment:}}\quad M_{{b,\mathrm{{res}}}} &= \sqrt{{M_{{b,t}}^2+M_{{b,r}}^2}} = {tex_num(results.max_bending_resultant_Nmm / 1000, 2)}\,\mathrm{{Nm}}\end{{aligned}}",
             ],
         ),
     ]
