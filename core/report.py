@@ -82,8 +82,32 @@ def formula_title(formula: str) -> str:
     return titles.get(key, key)
 
 
+def formula_reference(formula: str) -> str:
+    key = formula.split("=")[0].strip()
+    refs = {
+        "i_soll": "21.9",
+        "z_2": "21.9",
+        "i_real": "21.9",
+        "n_2,real": "21.9",
+        "d_1": "21.1",
+        "d_2": "21.1",
+        "d_b1": "21.2",
+        "d_b2": "21.2",
+        "d_a1": "21.6",
+        "d_a2": "21.6",
+        "d_f1": "21.7",
+        "d_f2": "21.7",
+        "a": "21.8",
+        "p_e": "21.4",
+        "epsilon_alpha": "21.26",
+    }
+    return refs.get(key, "")
+
+
 def line_formula(formula: str, substitution: str, result: str) -> str:
-    return f"- **Berechnet: {formula_title(formula)}**\n  - Formel: `{formula}`\n  - Einsetzen: `{substitution}`\n  - Ergebnis: **{result}**"
+    reference = formula_reference(formula)
+    reference_text = f" ({reference})" if reference else ""
+    return f"- **Berechnet: {formula_title(formula)}**\n  - Formel: `{formula}`{reference_text}\n  - Einsetzen: `{substitution}`\n  - Ergebnis: **{result}**"
 
 
 def bearing_label(bearing: dict[str, Any] | None) -> str:
@@ -498,13 +522,13 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
     z2_lines = (
         [
             r"\begin{align*}",
-            r"z_2 &= \operatorname{round}(i_\mathrm{soll} \cdot z_1) \\",
+            r"z_2 &= \operatorname{round}(i_\mathrm{soll} \cdot z_1) \quad\text{(21.9)} \\",
             rf"    &= \operatorname{{round}}({tex_num(results.i_target, 4)} \cdot {results.z1}) \\",
             rf"    &= {results.z2}",
             r"\end{align*}",
         ]
         if inputs.z2_manual is None
-        else [rf"\[z_2 = {results.z2}\quad\text{{(manuell gewaehlt)}}\]"]
+        else [rf"\[z_2 = {results.z2}\quad\text{{(21.9, manuell gewaehlt)}}\]"]
     )
 
     lines: list[str] = [
@@ -537,7 +561,7 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         r"\section{Grundrechnung}",
         r"\textbf{Berechnet: Soll-Uebersetzung}",
         r"\begin{align*}",
-        r"i_\mathrm{soll} &= \frac{n_1}{n_{2,\mathrm{soll}}} \\",
+        r"i_\mathrm{soll} &= \frac{n_1}{n_{2,\mathrm{soll}}} \quad\text{(21.9)} \\",
         rf"    &= \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(inputs.n2_target_rpm, 0)}}} \\",
         rf"    &= {tex_num(results.i_target, 4)}",
         r"\end{align*}",
@@ -579,13 +603,13 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         *z2_lines,
         r"\textbf{Berechnet: reale Uebersetzung, Uebersetzungsabweichung und reale Abtriebsdrehzahl}",
         r"\begin{align*}",
-        r"i_\mathrm{real} &= \frac{z_2}{z_1} \\",
+        r"i_\mathrm{real} &= \frac{z_2}{z_1} \quad\text{(21.9)} \\",
         rf"    &= \frac{{{results.z2}}}{{{results.z1}}} \\",
         rf"    &= {tex_num(results.i_real, 4)} \\",
         r"\Delta_i &= \frac{i_\mathrm{real} - i_\mathrm{soll}}{i_\mathrm{soll}} \cdot 100\,\% \\",
         rf"    &= \frac{{{tex_num(results.i_real, 4)} - {tex_num(results.i_target, 4)}}}{{{tex_num(results.i_target, 4)}}} \cdot 100\,\% \\",
         rf"    &= {tex_num(results.i_deviation_percent, 2)}\,\% \\",
-        r"n_{2,\mathrm{real}} &= \frac{n_1}{i_\mathrm{real}} \\",
+        r"n_{2,\mathrm{real}} &= \frac{n_1}{i_\mathrm{real}} \quad\text{(21.9)} \\",
         rf"    &= \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(results.i_real, 4)}}} \\",
         rf"    &= {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}",
         r"\end{align*}",
@@ -600,16 +624,16 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         r"\subsection{Ritzel}",
         r"\textbf{Berechnet: Ritzel-Durchmesser}",
         r"\begin{align*}",
-        r"d_1 &= \frac{m_n \cdot z_1}{\cos(\beta)} \\",
+        r"d_1 &= \frac{m_n \cdot z_1}{\cos(\beta)} \quad\text{(21.1)} \\",
         rf"    &= \frac{{{tex_num(results.m_selected_mm)} \cdot {results.z1}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} \\",
         rf"    &= {tex_num(results.d1_mm)}\,\mathrm{{mm}} \\",
-        r"d_{b1} &= d_1 \cdot \cos(\alpha_t) \\",
+        r"d_{b1} &= d_1 \cdot \cos(\alpha_t) \quad\text{(21.2)} \\",
         rf"    &= {tex_num(results.d1_mm)} \cdot \cos({tex_num(results.alpha_transverse_deg)}^\circ) \\",
         rf"    &= {tex_num(results.db1_mm)}\,\mathrm{{mm}} \\",
-        r"d_{a1} &= d_1 + 2m_n \\",
+        r"d_{a1} &= d_1 + 2m_n \quad\text{(21.6)} \\",
         rf"    &= {tex_num(results.d1_mm)} + 2 \cdot {tex_num(results.m_selected_mm)} \\",
         rf"    &= {tex_num(results.da1_mm)}\,\mathrm{{mm}} \\",
-        r"d_{f1} &= d_1 - 2{,}5m_n \\",
+        r"d_{f1} &= d_1 - 2{,}5m_n \quad\text{(21.7)} \\",
         rf"    &= {tex_num(results.d1_mm)} - 2{{,}}5 \cdot {tex_num(results.m_selected_mm)} \\",
         rf"    &= {tex_num(results.df1_mm)}\,\mathrm{{mm}}",
         r"\end{align*}",
@@ -620,19 +644,19 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         r"\subsection{Gegenrad}",
         r"\textbf{Berechnet: Gegenrad-Durchmesser}",
         r"\begin{align*}",
-        r"d_2 &= \frac{m_n \cdot z_2}{\cos(\beta)} \\",
+        r"d_2 &= \frac{m_n \cdot z_2}{\cos(\beta)} \quad\text{(21.1)} \\",
         rf"    &= \frac{{{tex_num(results.m_selected_mm)} \cdot {results.z2}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} \\",
         rf"    &= {tex_num(results.d2_mm)}\,\mathrm{{mm}} \\",
-        r"d_{b2} &= d_2 \cdot \cos(\alpha_t) \\",
+        r"d_{b2} &= d_2 \cdot \cos(\alpha_t) \quad\text{(21.2)} \\",
         rf"    &= {tex_num(results.d2_mm)} \cdot \cos({tex_num(results.alpha_transverse_deg)}^\circ) \\",
         rf"    &= {tex_num(results.db2_mm)}\,\mathrm{{mm}} \\",
-        r"d_{a2} &= d_2 + 2m_n \\",
+        r"d_{a2} &= d_2 + 2m_n \quad\text{(21.6)} \\",
         rf"    &= {tex_num(results.d2_mm)} + 2 \cdot {tex_num(results.m_selected_mm)} \\",
         rf"    &= {tex_num(results.da2_mm)}\,\mathrm{{mm}} \\",
-        r"d_{f2} &= d_2 - 2{,}5m_n \\",
+        r"d_{f2} &= d_2 - 2{,}5m_n \quad\text{(21.7)} \\",
         rf"    &= {tex_num(results.d2_mm)} - 2{{,}}5 \cdot {tex_num(results.m_selected_mm)} \\",
         rf"    &= {tex_num(results.df2_mm)}\,\mathrm{{mm}} \\",
-        r"a &= \frac{d_1 + d_2}{2} \\",
+        r"a &= \frac{d_1 + d_2}{2} \quad\text{(21.8)} \\",
         rf"    &= \frac{{{tex_num(results.d1_mm)} + {tex_num(results.d2_mm)}}}{{2}} \\",
         rf"    &= {tex_num(results.center_distance_mm)}\,\mathrm{{mm}}",
         r"\end{align*}",
@@ -646,7 +670,7 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         r"p_t &= \frac{\pi \cdot m_n}{\cos(\beta)} \\",
         rf"  &= \frac{{\pi \cdot {tex_num(results.m_selected_mm)}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} \\",
         rf"  &= {tex_num(results.pitch_mm, 3)}\,\mathrm{{mm}} \\",
-        r"p_e &= p_t \cdot \cos(\alpha_t) \\",
+        r"p_e &= p_t \cdot \cos(\alpha_t) \quad\text{(21.4)} \\",
         rf"    &= {tex_num(results.pitch_mm, 3)} \cdot \cos({tex_num(results.alpha_transverse_deg)}^\circ) \\",
         rf"    &= {tex_num(results.base_pitch_mm, 3)}\,\mathrm{{mm}}",
         r"\end{align*}",
@@ -655,7 +679,7 @@ def generate_latex_report(inputs: GearInputs, results: GearResults, bearings: li
         r"+ \sqrt{\left(\frac{d_{a2}}{2}\right)^2 - \left(\frac{d_{b2}}{2}\right)^2} - a\sin(\alpha_t) \\",
         rf"    &= {tex_num(results.path_contact_pinion_mm, 3)} + {tex_num(results.path_contact_wheel_mm, 3)} - {tex_num(results.path_contact_center_subtract_mm, 3)} \\",
         rf"    &= {tex_num(results.path_of_contact_mm, 3)}\,\mathrm{{mm}} \\",
-        r"\varepsilon_\alpha &= \frac{g_\alpha}{p_e} \\",
+        r"\varepsilon_\alpha &= \frac{g_\alpha}{p_e} \quad\text{(21.26)} \\",
         rf"    &= \frac{{{tex_num(results.path_of_contact_mm, 3)}}}{{{tex_num(results.base_pitch_mm, 3)}}} \\",
         rf"    &= {tex_num(results.contact_ratio, 3)}",
         r"\end{align*}",
@@ -771,12 +795,12 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
 
     z2_formula = (
         rf"\begin{{aligned}}"
-        rf"\text{{Zaehnezahl Gegenrad:}}\quad z_2 &= \operatorname{{round}}(i_\mathrm{{soll}}\cdot z_1) \\"
+        rf"\text{{Zaehnezahl Gegenrad:}}\quad z_2 &= \operatorname{{round}}(i_\mathrm{{soll}}\cdot z_1)\quad\text{{(21.9)}} \\"
         rf"&= \operatorname{{round}}({tex_num(results.i_target, 4)}\cdot {results.z1}) \\"
         rf"&= {results.z2}"
         rf"\end{{aligned}}"
         if inputs.z2_manual is None
-        else rf"\text{{Zaehnezahl Gegenrad:}}\quad z_2 = {results.z2}\quad\text{{(manuell gewaehlt)}}"
+        else rf"\text{{Zaehnezahl Gegenrad:}}\quad z_2 = {results.z2}\quad\text{{(21.9, manuell gewaehlt)}}"
     )
 
     bearing_life_blocks: list[str] = []
@@ -808,7 +832,7 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
         (
             "Grundrechnung",
             [
-                rf"\begin{{aligned}}\text{{Soll-Uebersetzung:}}\quad i_\mathrm{{soll}} &= \frac{{n_1}}{{n_{{2,\mathrm{{soll}}}}}} = \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(inputs.n2_target_rpm, 0)}}} = {tex_num(results.i_target, 4)}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Soll-Uebersetzung:}}\quad i_\mathrm{{soll}} &= \frac{{n_1}}{{n_{{2,\mathrm{{soll}}}}}}\quad\text{{(21.9)}} = \frac{{{tex_num(inputs.n1_rpm, 0)}}}{{{tex_num(inputs.n2_target_rpm, 0)}}} = {tex_num(results.i_target, 4)}\end{{aligned}}",
                 rf"\begin{{aligned}}\text{{Antriebsdrehmoment:}}\quad M_1 &= \frac{{P}}{{2\pi n_1}} = \frac{{{tex_num(inputs.power_kw)}\cdot1000}}{{2\pi\cdot({tex_num(inputs.n1_rpm, 0)}/60)}} = {tex_num(results.M1_Nm, 2)}\,\mathrm{{Nm}}\end{{aligned}}",
                 rf"\begin{{aligned}}\text{{ideales Abtriebsdrehmoment:}}\quad M_2 &= M_1\cdot i_\mathrm{{soll}} = {tex_num(results.M1_Nm, 2)}\cdot {tex_num(results.i_target, 4)} = {tex_num(results.M2_Nm, 2)}\,\mathrm{{Nm}}\end{{aligned}}",
                 rf"\begin{{aligned}}\text{{Mindestwellendurchmesser:}}\quad d_{{\min,1}} &= \sqrt[3]{{\frac{{16M_1}}{{\pi\tau_{{t,\mathrm{{zul}}}}}}}} = {tex_num(results.d_min_shaft_1_mm, 2)}\,\mathrm{{mm}}\end{{aligned}}",
@@ -820,27 +844,27 @@ def generate_live_latex_blocks(inputs: GearInputs, results: GearResults, bearing
                 rf"\begin{{aligned}}\text{{theoretisch erforderlicher Modul:}}\quad {module_formula} &= \frac{{{tex_num(module_factor, 1)}\cdot {tex_num(inputs.d_sh_pinion_mm)}\cdot \cos({tex_num(inputs.beta_deg)}^\circ)}}{{{results.z1}-2{{,}}5}} = {tex_num(results.m_theoretical_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
                 rf"\text{{Normmodul:}}\quad m_\mathrm{{Norm,empfohlen}} = {tex_num(results.m_recommended_mm)}\,\mathrm{{mm}}\qquad m_\mathrm{{gewaehlt}} = {tex_num(results.m_selected_mm)}\,\mathrm{{mm}}",
                 z2_formula,
-                rf"\begin{{aligned}}\text{{reale Uebersetzung:}}\quad i_\mathrm{{real}} &= \frac{{z_2}}{{z_1}} = \frac{{{results.z2}}}{{{results.z1}}} = {tex_num(results.i_real, 4)}\\ \text{{Uebersetzungsabweichung:}}\quad \Delta_i &= \frac{{i_\mathrm{{real}}-i_\mathrm{{soll}}}}{{i_\mathrm{{soll}}}}\cdot 100\,\% = {tex_num(results.i_deviation_percent, 2)}\,\%\\ \text{{reale Abtriebsdrehzahl:}}\quad n_{{2,\mathrm{{real}}}} &= \frac{{n_1}}{{i_\mathrm{{real}}}} = {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}\\ \text{{Drehzahlabweichung:}}\quad \Delta_{{n2}} &= \frac{{n_{{2,\mathrm{{real}}}}-n_{{2,\mathrm{{soll}}}}}}{{n_{{2,\mathrm{{soll}}}}}}\cdot 100\,\% = {tex_num(results.n2_deviation_percent, 2)}\,\%\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{reale Uebersetzung:}}\quad i_\mathrm{{real}} &= \frac{{z_2}}{{z_1}}\quad\text{{(21.9)}} = \frac{{{results.z2}}}{{{results.z1}}} = {tex_num(results.i_real, 4)}\\ \text{{Uebersetzungsabweichung:}}\quad \Delta_i &= \frac{{i_\mathrm{{real}}-i_\mathrm{{soll}}}}{{i_\mathrm{{soll}}}}\cdot 100\,\% = {tex_num(results.i_deviation_percent, 2)}\,\%\\ \text{{reale Abtriebsdrehzahl:}}\quad n_{{2,\mathrm{{real}}}} &= \frac{{n_1}}{{i_\mathrm{{real}}}}\quad\text{{(21.9)}} = {tex_num(results.n2_real_rpm, 2)}\,\mathrm{{min^{{-1}}}}\\ \text{{Drehzahlabweichung:}}\quad \Delta_{{n2}} &= \frac{{n_{{2,\mathrm{{real}}}}-n_{{2,\mathrm{{soll}}}}}}{{n_{{2,\mathrm{{soll}}}}}}\cdot 100\,\% = {tex_num(results.n2_deviation_percent, 2)}\,\%\end{{aligned}}",
             ],
         ),
         (
             "Geometrie",
             [
                 rf"\begin{{aligned}}\text{{Stirneingriffswinkel:}}\quad \alpha_t &= \arctan\left(\frac{{\tan(\alpha)}}{{\cos(\beta)}}\right) = \arctan\left(\frac{{\tan({tex_num(inputs.alpha_deg)}^\circ)}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}}\right) = {tex_num(results.alpha_transverse_deg, 3)}^\circ\end{{aligned}}",
-                rf"\begin{{aligned}}\text{{Teilkreisdurchmesser:}}\quad d_1 &= \frac{{m_n z_1}}{{\cos(\beta)}} = \frac{{{tex_num(results.m_selected_mm)}\cdot {results.z1}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} = {tex_num(results.d1_mm)}\,\mathrm{{mm}}\\ d_2 &= \frac{{m_n z_2}}{{\cos(\beta)}} = \frac{{{tex_num(results.m_selected_mm)}\cdot {results.z2}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} = {tex_num(results.d2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
-                rf"\begin{{aligned}}\text{{Grundkreisdurchmesser:}}\quad d_{{b1}} &= d_1\cos(\alpha_t) = {tex_num(results.db1_mm)}\,\mathrm{{mm}}\\ d_{{b2}} &= d_2\cos(\alpha_t) = {tex_num(results.db2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
-                rf"\begin{{aligned}}\text{{Kopf- und Fusskreisdurchmesser Ritzel:}}\quad d_{{a1}} &= d_1+2m_n = {tex_num(results.da1_mm)}\,\mathrm{{mm}}\\ d_{{f1}} &= d_1-2{{,}}5m_n = {tex_num(results.df1_mm)}\,\mathrm{{mm}}\end{{aligned}}",
-                rf"\begin{{aligned}}\text{{Kopf- und Fusskreisdurchmesser Gegenrad:}}\quad d_{{a2}} &= d_2+2m_n = {tex_num(results.da2_mm)}\,\mathrm{{mm}}\\ d_{{f2}} &= d_2-2{{,}}5m_n = {tex_num(results.df2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Teilkreisdurchmesser:}}\quad d_1 &= \frac{{m_n z_1}}{{\cos(\beta)}}\quad\text{{(21.1)}} = \frac{{{tex_num(results.m_selected_mm)}\cdot {results.z1}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} = {tex_num(results.d1_mm)}\,\mathrm{{mm}}\\ d_2 &= \frac{{m_n z_2}}{{\cos(\beta)}}\quad\text{{(21.1)}} = \frac{{{tex_num(results.m_selected_mm)}\cdot {results.z2}}}{{\cos({tex_num(inputs.beta_deg)}^\circ)}} = {tex_num(results.d2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Grundkreisdurchmesser:}}\quad d_{{b1}} &= d_1\cos(\alpha_t)\quad\text{{(21.2)}} = {tex_num(results.db1_mm)}\,\mathrm{{mm}}\\ d_{{b2}} &= d_2\cos(\alpha_t)\quad\text{{(21.2)}} = {tex_num(results.db2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Kopf- und Fusskreisdurchmesser Ritzel:}}\quad d_{{a1}} &= d_1+2m_n\quad\text{{(21.6)}} = {tex_num(results.da1_mm)}\,\mathrm{{mm}}\\ d_{{f1}} &= d_1-2{{,}}5m_n\quad\text{{(21.7)}} = {tex_num(results.df1_mm)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Kopf- und Fusskreisdurchmesser Gegenrad:}}\quad d_{{a2}} &= d_2+2m_n\quad\text{{(21.6)}} = {tex_num(results.da2_mm)}\,\mathrm{{mm}}\\ d_{{f2}} &= d_2-2{{,}}5m_n\quad\text{{(21.7)}} = {tex_num(results.df2_mm)}\,\mathrm{{mm}}\end{{aligned}}",
                 width_formula,
-                rf"\begin{{aligned}}\text{{Achsabstand:}}\quad a &= \frac{{d_1+d_2}}{{2}} = \frac{{{tex_num(results.d1_mm)}+{tex_num(results.d2_mm)}}}{{2}} = {tex_num(results.center_distance_mm)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Achsabstand:}}\quad a &= \frac{{d_1+d_2}}{{2}}\quad\text{{(21.8)}} = \frac{{{tex_num(results.d1_mm)}+{tex_num(results.d2_mm)}}}{{2}} = {tex_num(results.center_distance_mm)}\,\mathrm{{mm}}\end{{aligned}}",
             ],
         ),
         (
             "Zahneingriff",
             [
-                rf"\begin{{aligned}}\text{{Teilungen:}}\quad p_t &= \frac{{\pi m_n}}{{\cos(\beta)}} = {tex_num(results.pitch_mm, 3)}\,\mathrm{{mm}}\\ p_e &= p_t\cos(\alpha_t) = {tex_num(results.base_pitch_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Teilungen:}}\quad p_t &= \frac{{\pi m_n}}{{\cos(\beta)}} = {tex_num(results.pitch_mm, 3)}\,\mathrm{{mm}}\\ p_e &= p_t\cos(\alpha_t)\quad\text{{(21.4)}} = {tex_num(results.base_pitch_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
                 rf"\begin{{aligned}}\text{{Eingriffsstrecke:}}\quad g_\alpha &= \sqrt{{\left(\frac{{d_{{a1}}}}{{2}}\right)^2-\left(\frac{{d_{{b1}}}}{{2}}\right)^2}} + \sqrt{{\left(\frac{{d_{{a2}}}}{{2}}\right)^2-\left(\frac{{d_{{b2}}}}{{2}}\right)^2}} - a\sin(\alpha_t)\\ &= {tex_num(results.path_contact_pinion_mm, 3)} + {tex_num(results.path_contact_wheel_mm, 3)} - {tex_num(results.path_contact_center_subtract_mm, 3)}\\ &= {tex_num(results.path_of_contact_mm, 3)}\,\mathrm{{mm}}\end{{aligned}}",
-                rf"\begin{{aligned}}\text{{Profilueberdeckung:}}\quad \varepsilon_\alpha &= \frac{{g_\alpha}}{{p_e}} = \frac{{{tex_num(results.path_of_contact_mm, 3)}}}{{{tex_num(results.base_pitch_mm, 3)}}} = {tex_num(results.contact_ratio, 3)}\end{{aligned}}",
+                rf"\begin{{aligned}}\text{{Profilueberdeckung:}}\quad \varepsilon_\alpha &= \frac{{g_\alpha}}{{p_e}}\quad\text{{(21.26)}} = \frac{{{tex_num(results.path_of_contact_mm, 3)}}}{{{tex_num(results.base_pitch_mm, 3)}}} = {tex_num(results.contact_ratio, 3)}\end{{aligned}}",
             ],
         ),
         (
