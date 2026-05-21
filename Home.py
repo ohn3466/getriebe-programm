@@ -2,60 +2,11 @@ from __future__ import annotations
 
 import streamlit as st
 
+from core.ui import apply_app_style
+
 
 st.set_page_config(page_title="Getriebe Programm", page_icon="G", layout="wide")
-
-st.markdown(
-    """
-    <style>
-    .stApp { background: #f6f7fb; color: #111827; }
-    [data-testid="stHeader"] { background: rgba(246, 247, 251, 0.9); }
-    .block-container { padding-top: 1.6rem; max-width: 980px; }
-    .block-container h1 { margin-bottom: 0.2rem; }
-    .block-container h2,
-    .block-container h3 { margin-top: 1.15rem; }
-    .block-container, .block-container h1, .block-container h2,
-    .block-container h3, .block-container p, .block-container li,
-    .block-container span { color: #111827; }
-    [data-testid="stCaptionContainer"],
-    [data-testid="stCaptionContainer"] * {
-        color: #475467 !important;
-    }
-    .home-note {
-        border: 1px solid #d0d5dd;
-        background: #ffffff;
-        border-radius: 0.45rem;
-        padding: 0.75rem 0.85rem;
-        margin: 0.85rem 0 1rem;
-    }
-    .home-note strong {
-        color: #111827;
-    }
-    div[data-testid="stButton"] > button,
-    div[data-testid="stPageLink"] a {
-        background: #075e2d !important;
-        color: #ffffff !important;
-        border: 1px solid #064d26 !important;
-        border-radius: 0.45rem !important;
-        font-weight: 650 !important;
-        text-decoration: none !important;
-    }
-    div[data-testid="stButton"] > button:hover,
-    div[data-testid="stPageLink"] a:hover {
-        background: #05431f !important;
-        color: #ffffff !important;
-        border-color: #043619 !important;
-    }
-    div[data-testid="stButton"] > button:focus,
-    div[data-testid="stPageLink"] a:focus {
-        color: #ffffff !important;
-        border-color: #ffffff !important;
-        box-shadow: 0 0 0 0.16rem rgba(7, 94, 45, 0.35) !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+apply_app_style(max_width_px=980, top_padding_rem=1.6)
 
 st.title("Getriebe Programm")
 st.caption("Online-Version mit Dashboard und gefuehrtem Assistenten.")

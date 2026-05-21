@@ -12,6 +12,7 @@ from core.dependency_engine import load_bearings, load_norm_module_rows, recalcu
 from core.models import GearInputs
 from core.report import generate_calculation_report, generate_latex_report, generate_live_latex_blocks
 from core.table_views import build_norm_module_table
+from core.ui import apply_app_style
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -431,102 +432,7 @@ def bearing_dialog(side: str, bearings: list[dict[str, Any]], seat_mm: float) ->
 
 
 st.set_page_config(page_title="Getriebe Wizard", page_icon="W", layout="wide")
-st.markdown(
-    """
-    <style>
-    .stApp { background: #f6f7fb; color: #111827; }
-    [data-testid="stHeader"] { background: rgba(246, 247, 251, 0.9); }
-    .block-container { padding-top: 1.2rem; max-width: 1180px; }
-    .block-container h1 { margin-bottom: 0.2rem; }
-    .block-container h2,
-    .block-container h3 { margin-top: 1.15rem; }
-    .block-container, .block-container h1, .block-container h2, .block-container h3,
-    .block-container p, .block-container label, .block-container span { color: #111827; }
-    div[data-testid="stMetric"] {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        padding: 0.65rem 0.8rem;
-        border-radius: 0.5rem;
-        color: #111827;
-    }
-    div[data-testid="stMetric"] * { color: #111827; }
-    div[data-testid="stDataFrame"] {
-        border: 1px solid #d0d5dd;
-        border-radius: 0.45rem;
-        overflow: hidden;
-        background: #ffffff;
-    }
-    div[data-testid="stDataFrame"] * {
-        color: #111827;
-    }
-    div[data-testid="stProgress"] * {
-        color: #111827 !important;
-    }
-    .wizard-panel {
-        background: #ffffff;
-        border: 1px solid #d0d5dd;
-        border-radius: 0.5rem;
-        padding: 0.85rem 1rem;
-        margin: 0.5rem 0 1rem;
-    }
-    .wizard-panel strong { color: #111827; }
-    div[data-testid="stExpander"] details summary {
-        background: #075e2d !important;
-        border: 1px solid #064d26 !important;
-        border-radius: 0.45rem !important;
-    }
-    div[data-testid="stExpander"] details summary,
-    div[data-testid="stExpander"] details summary * {
-        color: #ffffff !important;
-        font-weight: 650 !important;
-    }
-    div[data-testid="stExpander"] details summary:hover {
-        background: #05431f !important;
-    }
-    div[data-testid="stButton"] > button,
-    div[data-testid="stDownloadButton"] > button,
-    div[data-testid="stFormSubmitButton"] > button {
-        background: #075e2d !important;
-        color: #ffffff !important;
-        border: 1px solid #064d26 !important;
-        border-radius: 0.45rem !important;
-        font-weight: 650 !important;
-        box-shadow: none !important;
-    }
-    div[data-testid="stButton"] > button:hover,
-    div[data-testid="stDownloadButton"] > button:hover,
-    div[data-testid="stFormSubmitButton"] > button:hover {
-        background: #05431f !important;
-        color: #ffffff !important;
-        border-color: #043619 !important;
-    }
-    div[data-testid="stButton"] > button:focus,
-    div[data-testid="stDownloadButton"] > button:focus,
-    div[data-testid="stFormSubmitButton"] > button:focus {
-        color: #ffffff !important;
-        border-color: #ffffff !important;
-        box-shadow: 0 0 0 0.16rem rgba(7, 94, 45, 0.35) !important;
-    }
-    div[data-testid="stButton"] > button:disabled,
-    div[data-testid="stDownloadButton"] > button:disabled,
-    div[data-testid="stFormSubmitButton"] > button:disabled {
-        background: #f3f4f6 !important;
-        color: #374151 !important;
-        border-color: #9ca3af !important;
-    }
-    .status-badge {
-        display: inline-block;
-        padding: 0.18rem 0.5rem;
-        border-radius: 999px;
-        color: #ffffff !important;
-        font-size: 0.78rem;
-        font-weight: 650;
-        line-height: 1.25;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+apply_app_style(max_width_px=1180, top_padding_rem=1.2)
 
 init_state()
 preserve_wizard_state()
