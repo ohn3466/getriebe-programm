@@ -186,7 +186,7 @@ def run_all_checks(
     if inputs.d_sh_pinion_mm >= results.d_min_shaft_1_mm:
         checks.append(
             ok(
-                "d_sh gegen d_min",
+                "Ritzelwelle d_sh gegen d_min",
                 f"{inputs.d_sh_pinion_mm:g} mm",
                 f">= {results.d_min_shaft_1_mm:.2f} mm",
                 "Ritzel-/Nabendurchmesser ist groesser als der torsionale Mindestdurchmesser.",
@@ -195,10 +195,29 @@ def run_all_checks(
     else:
         checks.append(
             error(
-                "d_sh gegen d_min",
+                "Ritzelwelle d_sh gegen d_min",
                 f"{inputs.d_sh_pinion_mm:g} mm",
                 f">= {results.d_min_shaft_1_mm:.2f} mm",
                 "d_sh ist kleiner als der torsionale Mindestdurchmesser. Welle vergroessern oder Werkstoff pruefen.",
+            )
+        )
+
+    if inputs.d_sh_wheel_mm >= results.d_min_shaft_2_mm:
+        checks.append(
+            ok(
+                "Gegenradwelle d_sh gegen d_min",
+                f"{inputs.d_sh_wheel_mm:g} mm",
+                f">= {results.d_min_shaft_2_mm:.2f} mm",
+                "Gegenrad-Wellendurchmesser ist groesser als der torsionale Mindestdurchmesser.",
+            )
+        )
+    else:
+        checks.append(
+            error(
+                "Gegenradwelle d_sh gegen d_min",
+                f"{inputs.d_sh_wheel_mm:g} mm",
+                f">= {results.d_min_shaft_2_mm:.2f} mm",
+                "Gegenradwelle ist kleiner als der torsionale Mindestdurchmesser. Welle vergroessern oder Werkstoff pruefen.",
             )
         )
 

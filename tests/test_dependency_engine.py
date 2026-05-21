@@ -147,6 +147,12 @@ class DependencyEngineTests(unittest.TestCase):
         self.assertEqual(check_by_name(results, "Lager links Lebensdauer").status, "OK")
         self.assertEqual(check_by_name(results, "Lager rechts Lebensdauer").status, "OK")
 
+    def test_wheel_shaft_diameter_is_checked(self):
+        inputs = GearInputs(selected_module=2.5, d_sh_wheel_mm=10.0)
+        results = recalculate_all(inputs, self.norm_modules, self.bearings)
+
+        self.assertEqual(check_by_name(results, "Gegenradwelle d_sh gegen d_min").status, "FEHLER")
+
     def test_section_loads_have_zero_end_moments_and_maximum_at_force(self):
         rows = calc_section_loads(1000, 500, 60, 80, points=15)
         force_row = rows[6]

@@ -40,6 +40,7 @@ DASHBOARD_DEFAULTS = {
     "material_name": "C45E",
     "shaft_label": "Ritzel auf Welle",
     "d_sh_pinion_mm": 28.0,
+    "d_sh_wheel_mm": 45.0,
     "z1": 25,
     "z2_auto": True,
     "z2_manual": 113,
@@ -436,6 +437,7 @@ with st.sidebar:
     )
     shaft_design = "mounted" if shaft_label == "Ritzel auf Welle" else "pinion_shaft"
     d_sh_pinion_mm = st.number_input("d_sh Ritzel [mm]", min_value=1.0, step=1.0, key="dashboard_d_sh_pinion_mm")
+    d_sh_wheel_mm = st.number_input("d_sh Gegenrad [mm]", min_value=1.0, step=1.0, key="dashboard_d_sh_wheel_mm")
     z1 = st.number_input("Zaehnezahl Ritzel z1", min_value=6, step=1, key="dashboard_z1")
     z2_auto = st.toggle("z2 automatisch aus i * z1 berechnen", key="dashboard_z2_auto")
     z2_manual = None
@@ -521,6 +523,7 @@ inputs = GearInputs(
     sigma_b_zul=float(material["sigma_b_zul"]),
     shaft_design=shaft_design,
     d_sh_pinion_mm=d_sh_pinion_mm,
+    d_sh_wheel_mm=d_sh_wheel_mm,
     selected_module=float(selected_module),
     width_rule=width_rule,
     psi_d=psi_d,
@@ -580,6 +583,29 @@ with basic_tab:
         width="stretch",
         hide_index=True,
     )
+    st.subheader("Wellen-Vorauslegung")
+    st.dataframe(
+        pd.DataFrame(
+            [
+                {
+                    "Bauteil": "Ritzelwelle / Ritzelsitz",
+                    "Drehmoment [Nm]": results.M1_Nm,
+                    "d_min aus Torsion [mm]": results.d_min_shaft_1_mm,
+                    "gewaehltes d_sh [mm]": inputs.d_sh_pinion_mm,
+                    "Status": "OK" if inputs.d_sh_pinion_mm >= results.d_min_shaft_1_mm else "zu klein",
+                },
+                {
+                    "Bauteil": "Gegenradwelle / Gegenradsitz",
+                    "Drehmoment [Nm]": results.M2_Nm,
+                    "d_min aus Torsion [mm]": results.d_min_shaft_2_mm,
+                    "gewaehltes d_sh [mm]": inputs.d_sh_wheel_mm,
+                    "Status": "OK" if inputs.d_sh_wheel_mm >= results.d_min_shaft_2_mm else "zu klein",
+                },
+            ]
+        ),
+        width="stretch",
+        hide_index=True,
+    )
 
 with module_tab:
     col1, col2, col3, col4 = st.columns(4)
@@ -620,6 +646,26 @@ with geometry_tab:
         hide_index=True,
     )
     st.metric("Achsabstand a", f"{results.center_distance_mm:.2f} mm")
+    st.subheader("Gegenrad-Auslegung")
+    st.dataframe(
+        pd.DataFrame(
+            [
+                {"Groesse": "Zaehnezahl", "Symbol": "z2", "Wert": results.z2, "Einheit": "-"},
+                {"Groesse": "reale Uebersetzung", "Symbol": "i_real", "Wert": results.i_real, "Einheit": "-"},
+                {"Groesse": "reale Abtriebsdrehzahl", "Symbol": "n2 real", "Wert": results.n2_real_rpm, "Einheit": "1/min"},
+                {"Groesse": "Abtriebsdrehmoment", "Symbol": "M2", "Wert": results.M2_Nm, "Einheit": "Nm"},
+                {"Groesse": "Mindestdurchmesser Gegenradwelle", "Symbol": "d_min,2", "Wert": results.d_min_shaft_2_mm, "Einheit": "mm"},
+                {"Groesse": "gewaehlter Gegenradsitz", "Symbol": "d_sh,2", "Wert": inputs.d_sh_wheel_mm, "Einheit": "mm"},
+                {"Groesse": "Teilkreisdurchmesser", "Symbol": "d2", "Wert": results.d2_mm, "Einheit": "mm"},
+                {"Groesse": "Grundkreisdurchmesser", "Symbol": "db2", "Wert": results.db2_mm, "Einheit": "mm"},
+                {"Groesse": "Kopfkreisdurchmesser", "Symbol": "da2", "Wert": results.da2_mm, "Einheit": "mm"},
+                {"Groesse": "Fusskreisdurchmesser", "Symbol": "df2", "Wert": results.df2_mm, "Einheit": "mm"},
+                {"Groesse": "Breite", "Symbol": "b2", "Wert": results.b2_mm, "Einheit": "mm"},
+            ]
+        ),
+        width="stretch",
+        hide_index=True,
+    )
 
 with meshing_tab:
     col0, col1, col2, col3, col4 = st.columns(5)

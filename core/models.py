@@ -27,6 +27,7 @@ class GearInputs:
     sigma_b_zul: float = 64.0
     shaft_design: str = "mounted"
     d_sh_pinion_mm: float = 28.0
+    d_sh_wheel_mm: float = 45.0
     selected_module: float | None = None
     width_rule: str = "psi_d"
     psi_d: float = 1.0
