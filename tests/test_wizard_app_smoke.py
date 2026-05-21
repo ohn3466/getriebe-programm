@@ -10,6 +10,13 @@ def metric_value(app, label):
     raise AssertionError(f"Metrik nicht gefunden: {label}")
 
 
+def button_by_label(app, label):
+    for button in app.button:
+        if button.label == label:
+            return button
+    raise AssertionError(f"Button nicht gefunden: {label}")
+
+
 class WizardAppSmokeTests(unittest.TestCase):
     def test_wizard_renders_first_step_without_exceptions(self):
         app = AppTest.from_file("wizard_app.py")
@@ -18,35 +25,33 @@ class WizardAppSmokeTests(unittest.TestCase):
         self.assertEqual(len(app.exception), 0)
         self.assertEqual(app.header[0].value, "1. Grunddaten")
         self.assertEqual(metric_value(app, "i soll"), "4.512")
-        self.assertEqual(app.button[0].label, "Weiter")
-        self.assertFalse(app.button[0].disabled)
+        self.assertFalse(button_by_label(app, "Weiter").disabled)
 
     def test_wizard_step_requires_material_choice(self):
         app = AppTest.from_file("wizard_app.py")
         app.run(timeout=10)
-        app.button[0].click().run(timeout=10)
+        button_by_label(app, "Weiter").click().run(timeout=10)
 
         self.assertEqual(len(app.exception), 0)
         self.assertEqual(app.header[0].value, "2. Werkstoff aus Tabelle waehlen")
-        self.assertEqual(app.button[2].label, "Weiter")
-        self.assertTrue(app.button[2].disabled)
+        self.assertTrue(button_by_label(app, "Weiter").disabled)
 
         app.session_state["wizard_material_name"] = "C45E"
         app.run(timeout=10)
 
-        self.assertFalse(app.button[2].disabled)
+        self.assertFalse(button_by_label(app, "Weiter").disabled)
 
     def test_wizard_keeps_values_when_moving_back_and_forward(self):
         app = AppTest.from_file("wizard_app.py")
         app.run(timeout=10)
 
         app.number_input[0].set_value(15.0).run(timeout=10)
-        app.button[0].click().run(timeout=10)
+        button_by_label(app, "Weiter").click().run(timeout=10)
         app.session_state["wizard_material_name"] = "C45E"
         app.run(timeout=10)
-        app.button[2].click().run(timeout=10)
-        app.button[0].click().run(timeout=10)
-        app.button[1].click().run(timeout=10)
+        button_by_label(app, "Weiter").click().run(timeout=10)
+        button_by_label(app, "Zurueck").click().run(timeout=10)
+        button_by_label(app, "Zurueck").click().run(timeout=10)
 
         self.assertEqual(len(app.exception), 0)
         self.assertEqual(app.header[0].value, "1. Grunddaten")

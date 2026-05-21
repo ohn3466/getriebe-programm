@@ -87,6 +87,57 @@ def find_material(materials: list[dict[str, Any]], name: str | None) -> dict[str
     return next((material for material in materials if str(material["werkstoff"]) == "C45E"), materials[0])
 
 
+def all_materials(base_materials: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    custom = st.session_state.get("custom_materials", [])
+    merged = {str(material["werkstoff"]): material for material in base_materials}
+    for material in custom:
+        merged[str(material["werkstoff"])] = material
+    return list(merged.values())
+
+
+def render_custom_material_form(prefix: str) -> None:
+    message_key = f"{prefix}_custom_material_message"
+    with st.expander("Eigenen Werkstoff hinzufuegen", expanded=False):
+        if st.session_state.get(message_key):
+            st.success(st.session_state[message_key])
+            st.session_state[message_key] = ""
+        st.caption("Alle Spannungen bitte in N/mm2 eintragen. Der neue Werkstoff wird direkt ausgewaehlt.")
+        with st.form(f"{prefix}_custom_material_form"):
+            name = st.text_input("Werkstoffname", key=f"{prefix}_custom_material_name")
+            col1, col2 = st.columns(2)
+            with col1:
+                tau_t_zul = st.number_input("tau_t_zul [N/mm2]", min_value=0.1, step=1.0, key=f"{prefix}_custom_material_tau")
+                rm = st.number_input("Rm [N/mm2]", min_value=0.1, step=10.0, key=f"{prefix}_custom_material_rm")
+            with col2:
+                sigma_b_zul = st.number_input("sigma_b_zul [N/mm2]", min_value=0.1, step=1.0, key=f"{prefix}_custom_material_sigma")
+                re = st.number_input("Re [N/mm2]", min_value=0.1, step=10.0, key=f"{prefix}_custom_material_re")
+            group = st.text_input("Gruppe", value="Eigener Werkstoff", key=f"{prefix}_custom_material_group")
+            submitted = st.form_submit_button("Werkstoff hinzufuegen")
+
+        if submitted:
+            clean_name = name.strip()
+            if not clean_name:
+                st.error("Bitte einen Werkstoffnamen eintragen.")
+            else:
+                material = {
+                    "werkstoff": clean_name,
+                    "tau_t_zul": float(tau_t_zul),
+                    "sigma_b_zul": float(sigma_b_zul),
+                    "Rm": float(rm),
+                    "Re": float(re),
+                    "gruppe": group.strip() or "Eigener Werkstoff",
+                }
+                custom = [item for item in st.session_state.custom_materials if str(item["werkstoff"]) != clean_name]
+                custom.append(material)
+                st.session_state.custom_materials = custom
+                st.session_state[f"{prefix}_material_name"] = clean_name
+                st.session_state[message_key] = f"Werkstoff {clean_name} hinzugefuegt und ausgewaehlt."
+                st.rerun()
+
+        if st.session_state.custom_materials:
+            st.dataframe(pd.DataFrame(st.session_state.custom_materials), width="stretch", hide_index=True)
+
+
 def find_bearing(bearings: list[dict[str, Any]], name: str | None) -> dict[str, Any] | None:
     if not name:
         return None
@@ -174,6 +225,7 @@ def init_state() -> None:
     for key, value in WIZARD_DEFAULTS.items():
         st.session_state.setdefault(f"wizard_{key}", value)
     st.session_state.setdefault("custom_bearings", [])
+    st.session_state.setdefault("custom_materials", [])
 
 
 def preserve_wizard_state() -> None:
@@ -478,7 +530,7 @@ st.markdown(
 
 init_state()
 preserve_wizard_state()
-materials = load_materials()
+materials = all_materials(load_materials())
 norm_module_rows = load_norm_rows_cached()
 bearings = all_bearings(load_bearings_cached())
 inputs = current_inputs(materials)
@@ -531,6 +583,7 @@ elif step == 1:
     if st.button("Werkstoff-Tabelle oeffnen", width="stretch"):
         material_dialog(materials)
 
+    render_custom_material_form("wizard")
     st.dataframe(pd.DataFrame(materials), width="stretch", hide_index=True)
     next_button(enabled=selected is not None)
 

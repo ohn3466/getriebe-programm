@@ -10,6 +10,13 @@ def metric_value(app, label):
     raise AssertionError(f"Metrik nicht gefunden: {label}")
 
 
+def number_input_by_label(app, label):
+    for number_input in app.number_input:
+        if number_input.label == label:
+            return number_input
+    raise AssertionError(f"Zahleneingabe nicht gefunden: {label}")
+
+
 class AppSmokeTests(unittest.TestCase):
     def test_app_renders_without_exceptions(self):
         app = AppTest.from_file("app.py")
@@ -30,7 +37,7 @@ class AppSmokeTests(unittest.TestCase):
         self.assertEqual(app.metric[10].label, "m gewaehlt")
         self.assertEqual(app.metric[9].value, "2.5 mm")
 
-        app.number_input[5].set_value(32).run(timeout=10)
+        number_input_by_label(app, "d_sh Ritzel [mm]").set_value(32).run(timeout=10)
 
         self.assertEqual(len(app.exception), 0)
         self.assertEqual(app.metric[8].value, "2.560 mm")
@@ -45,7 +52,7 @@ class AppSmokeTests(unittest.TestCase):
         self.assertEqual(metric_value(app, "Ft"), "1982.1 N")
         self.assertEqual(metric_value(app, "M_b max resultierend"), "72.32 Nm")
 
-        app.number_input[5].set_value(32).run(timeout=10)
+        number_input_by_label(app, "d_sh Ritzel [mm]").set_value(32).run(timeout=10)
 
         self.assertEqual(len(app.exception), 0)
         self.assertEqual(metric_value(app, "g_alpha"), "15.397 mm")
