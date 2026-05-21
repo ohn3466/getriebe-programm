@@ -52,6 +52,20 @@ class WizardAppSmokeTests(unittest.TestCase):
         self.assertEqual(app.session_state["wizard_z2_manual"], 113)
         self.assertEqual(app.session_state["wizard_d_sh_wheel_mm"], 45.0)
 
+    def test_wizard_recovers_incomplete_custom_material(self):
+        app = AppTest.from_file("wizard_app.py")
+        app.session_state["wizard_material_name"] = "AltWerkstoff"
+        app.session_state["custom_materials"] = [
+            {
+                "werkstoff": "AltWerkstoff",
+                "tau_t_zul": None,
+                "sigma_b_zul": "ungueltig",
+            }
+        ]
+        app.run(timeout=10)
+
+        self.assertEqual(len(app.exception), 0)
+
     def test_wizard_keeps_values_when_moving_back_and_forward(self):
         app = AppTest.from_file("wizard_app.py")
         app.run(timeout=10)

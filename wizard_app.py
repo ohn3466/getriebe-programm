@@ -80,19 +80,53 @@ def load_bearings_cached() -> list[dict[str, Any]]:
     return load_bearings(DATA_DIR / "lager.csv")
 
 
+def clean_float(value: Any, fallback: float) -> float:
+    try:
+        if value is None:
+            return fallback
+        return float(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def clean_int(value: Any, fallback: int) -> int:
+    try:
+        if value is None:
+            return fallback
+        return int(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def normalize_material(material: dict[str, Any], fallback: dict[str, Any] | None = None) -> dict[str, Any]:
+    fallback = fallback or {}
+    name = str(material.get("werkstoff") or fallback.get("werkstoff") or "Eigener Werkstoff").strip()
+    return {
+        "werkstoff": name or "Eigener Werkstoff",
+        "tau_t_zul": clean_float(material.get("tau_t_zul"), clean_float(fallback.get("tau_t_zul"), 32.0)),
+        "sigma_b_zul": clean_float(material.get("sigma_b_zul"), clean_float(fallback.get("sigma_b_zul"), 64.0)),
+        "Rm": clean_float(material.get("Rm"), clean_float(fallback.get("Rm"), 580.0)),
+        "Re": clean_float(material.get("Re"), clean_float(fallback.get("Re"), 305.0)),
+        "gruppe": str(material.get("gruppe") or fallback.get("gruppe") or "Eigener Werkstoff"),
+    }
+
+
 def find_material(materials: list[dict[str, Any]], name: str | None) -> dict[str, Any]:
     if name:
         for material in materials:
             if str(material["werkstoff"]) == name:
-                return material
-    return next((material for material in materials if str(material["werkstoff"]) == "C45E"), materials[0])
+                return normalize_material(material)
+    fallback = next((material for material in materials if str(material["werkstoff"]) == "C45E"), materials[0])
+    return normalize_material(fallback)
 
 
 def all_materials(base_materials: list[dict[str, Any]]) -> list[dict[str, Any]]:
     custom = st.session_state.get("custom_materials", [])
-    merged = {str(material["werkstoff"]): material for material in base_materials}
+    merged = {str(material["werkstoff"]): normalize_material(material) for material in base_materials}
     for material in custom:
-        merged[str(material["werkstoff"])] = material
+        if isinstance(material, dict):
+            normalized = normalize_material(material, merged.get(str(material.get("werkstoff"))))
+            merged[str(normalized["werkstoff"])] = normalized
     return list(merged.values())
 
 
@@ -242,31 +276,34 @@ def preserve_wizard_state() -> None:
 
 def current_inputs(materials: list[dict[str, Any]]) -> GearInputs:
     material = find_material(materials, st.session_state.wizard_material_name)
+    z2_auto = bool(st.session_state.wizard_z2_auto)
     return GearInputs(
         project_name=st.session_state.wizard_project_name,
-        power_kw=st.session_state.wizard_power_kw,
-        n1_rpm=st.session_state.wizard_n1_rpm,
-        n2_target_rpm=st.session_state.wizard_n2_target_rpm,
-        alpha_deg=st.session_state.wizard_alpha_deg,
-        beta_deg=st.session_state.wizard_beta_deg,
-        z1=int(st.session_state.wizard_z1),
-        z2_manual=None if st.session_state.wizard_z2_auto else int(st.session_state.wizard_z2_manual),
+        power_kw=clean_float(st.session_state.wizard_power_kw, WIZARD_DEFAULTS["power_kw"]),
+        n1_rpm=clean_float(st.session_state.wizard_n1_rpm, WIZARD_DEFAULTS["n1_rpm"]),
+        n2_target_rpm=clean_float(st.session_state.wizard_n2_target_rpm, WIZARD_DEFAULTS["n2_target_rpm"]),
+        alpha_deg=clean_float(st.session_state.wizard_alpha_deg, WIZARD_DEFAULTS["alpha_deg"]),
+        beta_deg=clean_float(st.session_state.wizard_beta_deg, WIZARD_DEFAULTS["beta_deg"]),
+        z1=clean_int(st.session_state.wizard_z1, WIZARD_DEFAULTS["z1"]),
+        z2_manual=None if z2_auto else clean_int(st.session_state.wizard_z2_manual, WIZARD_DEFAULTS["z2_manual"]),
         shaft_material=str(material["werkstoff"]),
-        tau_t_zul=float(material["tau_t_zul"]),
-        sigma_b_zul=float(material["sigma_b_zul"]),
+        tau_t_zul=clean_float(material["tau_t_zul"], WIZARD_DEFAULTS.get("tau_t_zul", 32.0)),
+        sigma_b_zul=clean_float(material["sigma_b_zul"], WIZARD_DEFAULTS.get("sigma_b_zul", 64.0)),
         shaft_design=st.session_state.wizard_shaft_design,
-        d_sh_pinion_mm=st.session_state.wizard_d_sh_pinion_mm,
-        d_sh_wheel_mm=st.session_state.wizard_d_sh_wheel_mm,
-        selected_module=st.session_state.wizard_selected_module,
+        d_sh_pinion_mm=clean_float(st.session_state.wizard_d_sh_pinion_mm, WIZARD_DEFAULTS["d_sh_pinion_mm"]),
+        d_sh_wheel_mm=clean_float(st.session_state.wizard_d_sh_wheel_mm, WIZARD_DEFAULTS["d_sh_wheel_mm"]),
+        selected_module=None
+        if st.session_state.wizard_selected_module is None
+        else clean_float(st.session_state.wizard_selected_module, WIZARD_DEFAULTS["selected_module"] or 0.0),
         width_rule=st.session_state.wizard_width_rule,
-        psi_d=st.session_state.wizard_psi_d,
-        width_factor_m=st.session_state.wizard_width_factor_m,
-        b2_offset_mm=st.session_state.wizard_b2_offset_mm,
-        bearing_distance_left_mm=st.session_state.wizard_bearing_distance_left_mm,
-        bearing_distance_right_mm=st.session_state.wizard_bearing_distance_right_mm,
-        bearing_seat_left_mm=st.session_state.wizard_bearing_seat_left_mm,
-        bearing_seat_right_mm=st.session_state.wizard_bearing_seat_right_mm,
-        bearing_life_required_h=st.session_state.wizard_bearing_life_required_h,
+        psi_d=clean_float(st.session_state.wizard_psi_d, WIZARD_DEFAULTS["psi_d"]),
+        width_factor_m=clean_float(st.session_state.wizard_width_factor_m, WIZARD_DEFAULTS["width_factor_m"]),
+        b2_offset_mm=clean_float(st.session_state.wizard_b2_offset_mm, WIZARD_DEFAULTS["b2_offset_mm"]),
+        bearing_distance_left_mm=clean_float(st.session_state.wizard_bearing_distance_left_mm, WIZARD_DEFAULTS["bearing_distance_left_mm"]),
+        bearing_distance_right_mm=clean_float(st.session_state.wizard_bearing_distance_right_mm, WIZARD_DEFAULTS["bearing_distance_right_mm"]),
+        bearing_seat_left_mm=clean_float(st.session_state.wizard_bearing_seat_left_mm, WIZARD_DEFAULTS["bearing_seat_left_mm"]),
+        bearing_seat_right_mm=clean_float(st.session_state.wizard_bearing_seat_right_mm, WIZARD_DEFAULTS["bearing_seat_right_mm"]),
+        bearing_life_required_h=clean_float(st.session_state.wizard_bearing_life_required_h, WIZARD_DEFAULTS["bearing_life_required_h"]),
         selected_bearing_left=st.session_state.wizard_selected_bearing_left,
         selected_bearing_right=st.session_state.wizard_selected_bearing_right,
     )

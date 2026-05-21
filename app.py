@@ -100,18 +100,51 @@ def load_bearings_cached() -> list[dict[str, Any]]:
     return load_bearings(DATA_DIR / "lager.csv")
 
 
+def clean_float(value: Any, fallback: float) -> float:
+    try:
+        if value is None:
+            return fallback
+        return float(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def clean_int(value: Any, fallback: int) -> int:
+    try:
+        if value is None:
+            return fallback
+        return int(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def normalize_material(material: dict[str, Any], fallback: dict[str, Any] | None = None) -> dict[str, Any]:
+    fallback = fallback or {}
+    name = str(material.get("werkstoff") or fallback.get("werkstoff") or "Eigener Werkstoff").strip()
+    return {
+        "werkstoff": name or "Eigener Werkstoff",
+        "tau_t_zul": clean_float(material.get("tau_t_zul"), clean_float(fallback.get("tau_t_zul"), 32.0)),
+        "sigma_b_zul": clean_float(material.get("sigma_b_zul"), clean_float(fallback.get("sigma_b_zul"), 64.0)),
+        "Rm": clean_float(material.get("Rm"), clean_float(fallback.get("Rm"), 580.0)),
+        "Re": clean_float(material.get("Re"), clean_float(fallback.get("Re"), 305.0)),
+        "gruppe": str(material.get("gruppe") or fallback.get("gruppe") or "Eigener Werkstoff"),
+    }
+
+
 def find_material(materials: list[dict[str, Any]], name: str) -> dict[str, Any]:
     for material in materials:
         if str(material["werkstoff"]) == name:
-            return material
+            return normalize_material(material)
     return materials[0]
 
 
 def all_materials(base_materials: list[dict[str, Any]]) -> list[dict[str, Any]]:
     custom = st.session_state.get("custom_materials", [])
-    merged = {str(material["werkstoff"]): material for material in base_materials}
+    merged = {str(material["werkstoff"]): normalize_material(material) for material in base_materials}
     for material in custom:
-        merged[str(material["werkstoff"])] = material
+        if isinstance(material, dict):
+            normalized = normalize_material(material, merged.get(str(material.get("werkstoff"))))
+            merged[str(normalized["werkstoff"])] = normalized
     return list(merged.values())
 
 
@@ -452,29 +485,29 @@ right_options = matching_bearings(bearings, bearing_seat_right_mm)
 
 inputs = GearInputs(
     project_name=project_name,
-    power_kw=power_kw,
-    n1_rpm=n1_rpm,
-    n2_target_rpm=n2_target_rpm,
-    alpha_deg=alpha_deg,
-    beta_deg=beta_deg,
-    z1=int(z1),
-    z2_manual=None if z2_manual is None else int(z2_manual),
+    power_kw=clean_float(power_kw, DASHBOARD_DEFAULTS["power_kw"]),
+    n1_rpm=clean_float(n1_rpm, DASHBOARD_DEFAULTS["n1_rpm"]),
+    n2_target_rpm=clean_float(n2_target_rpm, DASHBOARD_DEFAULTS["n2_target_rpm"]),
+    alpha_deg=clean_float(alpha_deg, DASHBOARD_DEFAULTS["alpha_deg"]),
+    beta_deg=clean_float(beta_deg, DASHBOARD_DEFAULTS["beta_deg"]),
+    z1=clean_int(z1, DASHBOARD_DEFAULTS["z1"]),
+    z2_manual=None if z2_manual is None else clean_int(z2_manual, DASHBOARD_DEFAULTS["z2_manual"]),
     shaft_material=material_name,
-    tau_t_zul=float(material["tau_t_zul"]),
-    sigma_b_zul=float(material["sigma_b_zul"]),
+    tau_t_zul=clean_float(material["tau_t_zul"], 32.0),
+    sigma_b_zul=clean_float(material["sigma_b_zul"], 64.0),
     shaft_design=shaft_design,
-    d_sh_pinion_mm=d_sh_pinion_mm,
-    d_sh_wheel_mm=d_sh_wheel_mm,
-    selected_module=float(selected_module),
+    d_sh_pinion_mm=clean_float(d_sh_pinion_mm, DASHBOARD_DEFAULTS["d_sh_pinion_mm"]),
+    d_sh_wheel_mm=clean_float(d_sh_wheel_mm, DASHBOARD_DEFAULTS["d_sh_wheel_mm"]),
+    selected_module=clean_float(selected_module, DASHBOARD_DEFAULTS["selected_module"]),
     width_rule=width_rule,
-    psi_d=psi_d,
-    width_factor_m=width_factor_m,
-    b2_offset_mm=b2_offset_mm,
-    bearing_distance_left_mm=bearing_distance_left_mm,
-    bearing_distance_right_mm=bearing_distance_right_mm,
-    bearing_seat_left_mm=bearing_seat_left_mm,
-    bearing_seat_right_mm=bearing_seat_right_mm,
-    bearing_life_required_h=bearing_life_required_h,
+    psi_d=clean_float(psi_d, DASHBOARD_DEFAULTS["psi_d"]),
+    width_factor_m=clean_float(width_factor_m, DASHBOARD_DEFAULTS["width_factor_m"]),
+    b2_offset_mm=clean_float(b2_offset_mm, DASHBOARD_DEFAULTS["b2_offset_mm"]),
+    bearing_distance_left_mm=clean_float(bearing_distance_left_mm, DASHBOARD_DEFAULTS["bearing_distance_left_mm"]),
+    bearing_distance_right_mm=clean_float(bearing_distance_right_mm, DASHBOARD_DEFAULTS["bearing_distance_right_mm"]),
+    bearing_seat_left_mm=clean_float(bearing_seat_left_mm, DASHBOARD_DEFAULTS["bearing_seat_left_mm"]),
+    bearing_seat_right_mm=clean_float(bearing_seat_right_mm, DASHBOARD_DEFAULTS["bearing_seat_right_mm"]),
+    bearing_life_required_h=clean_float(bearing_life_required_h, DASHBOARD_DEFAULTS["bearing_life_required_h"]),
     selected_bearing_left=selected_bearing_left,
     selected_bearing_right=selected_bearing_right,
 )
