@@ -289,6 +289,9 @@ st.markdown(
         background: rgba(246, 247, 251, 0.88);
     }
     .block-container { padding-top: 1.4rem; max-width: 1280px; }
+    .block-container h1 { margin-bottom: 0.2rem; }
+    .block-container h2,
+    .block-container h3 { margin-top: 1.15rem; }
     .block-container,
     .block-container h1,
     .block-container h2,
@@ -307,6 +310,23 @@ st.markdown(
     }
     div[data-testid="stMetric"] * {
         color: #111827;
+    }
+    div[data-testid="stDataFrame"] {
+        border: 1px solid #d0d5dd;
+        border-radius: 0.45rem;
+        overflow: hidden;
+        background: #ffffff;
+    }
+    div[data-testid="stDataFrame"] * {
+        color: #111827;
+    }
+    button[data-baseweb="tab"] {
+        color: #374151 !important;
+        font-weight: 650 !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #064d26 !important;
+        border-bottom-color: #075e2d !important;
     }
     div[data-testid="stCaptionContainer"],
     div[data-testid="stCaptionContainer"] * {
@@ -355,32 +375,49 @@ st.markdown(
         color: #054f31;
         font-weight: 500;
     }
-    div[data-testid="stButton"] > button,
-    div[data-testid="stDownloadButton"] > button {
-        background: #147d3f !important;
+    div[data-testid="stExpander"] details summary {
+        background: #075e2d !important;
+        border: 1px solid #064d26 !important;
+        border-radius: 0.45rem !important;
+    }
+    div[data-testid="stExpander"] details summary,
+    div[data-testid="stExpander"] details summary * {
         color: #ffffff !important;
-        border: 1px solid #0f6b35 !important;
+        font-weight: 650 !important;
+    }
+    div[data-testid="stExpander"] details summary:hover {
+        background: #05431f !important;
+    }
+    div[data-testid="stButton"] > button,
+    div[data-testid="stDownloadButton"] > button,
+    div[data-testid="stFormSubmitButton"] > button {
+        background: #075e2d !important;
+        color: #ffffff !important;
+        border: 1px solid #064d26 !important;
         border-radius: 0.45rem !important;
         font-weight: 650 !important;
         box-shadow: none !important;
     }
     div[data-testid="stButton"] > button:hover,
-    div[data-testid="stDownloadButton"] > button:hover {
-        background: #0f6b35 !important;
+    div[data-testid="stDownloadButton"] > button:hover,
+    div[data-testid="stFormSubmitButton"] > button:hover {
+        background: #05431f !important;
         color: #ffffff !important;
-        border-color: #0b5a2c !important;
+        border-color: #043619 !important;
     }
     div[data-testid="stButton"] > button:focus,
-    div[data-testid="stDownloadButton"] > button:focus {
+    div[data-testid="stDownloadButton"] > button:focus,
+    div[data-testid="stFormSubmitButton"] > button:focus {
         color: #ffffff !important;
-        border-color: #054f31 !important;
-        box-shadow: 0 0 0 0.14rem rgba(20, 125, 63, 0.22) !important;
+        border-color: #ffffff !important;
+        box-shadow: 0 0 0 0.16rem rgba(7, 94, 45, 0.35) !important;
     }
     div[data-testid="stButton"] > button:disabled,
-    div[data-testid="stDownloadButton"] > button:disabled {
-        background: #e5e7eb !important;
-        color: #667085 !important;
-        border-color: #d0d5dd !important;
+    div[data-testid="stDownloadButton"] > button:disabled,
+    div[data-testid="stFormSubmitButton"] > button:disabled {
+        background: #f3f4f6 !important;
+        color: #374151 !important;
+        border-color: #9ca3af !important;
     }
     .status-badge {
         display: inline-block;

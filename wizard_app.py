@@ -385,6 +385,9 @@ st.markdown(
     .stApp { background: #f6f7fb; color: #111827; }
     [data-testid="stHeader"] { background: rgba(246, 247, 251, 0.9); }
     .block-container { padding-top: 1.2rem; max-width: 1180px; }
+    .block-container h1 { margin-bottom: 0.2rem; }
+    .block-container h2,
+    .block-container h3 { margin-top: 1.15rem; }
     .block-container, .block-container h1, .block-container h2, .block-container h3,
     .block-container p, .block-container label, .block-container span { color: #111827; }
     div[data-testid="stMetric"] {
@@ -395,6 +398,18 @@ st.markdown(
         color: #111827;
     }
     div[data-testid="stMetric"] * { color: #111827; }
+    div[data-testid="stDataFrame"] {
+        border: 1px solid #d0d5dd;
+        border-radius: 0.45rem;
+        overflow: hidden;
+        background: #ffffff;
+    }
+    div[data-testid="stDataFrame"] * {
+        color: #111827;
+    }
+    div[data-testid="stProgress"] * {
+        color: #111827 !important;
+    }
     .wizard-panel {
         background: #ffffff;
         border: 1px solid #d0d5dd;

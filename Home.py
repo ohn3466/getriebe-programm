@@ -11,9 +11,26 @@ st.markdown(
     .stApp { background: #f6f7fb; color: #111827; }
     [data-testid="stHeader"] { background: rgba(246, 247, 251, 0.9); }
     .block-container { padding-top: 1.6rem; max-width: 980px; }
+    .block-container h1 { margin-bottom: 0.2rem; }
+    .block-container h2,
+    .block-container h3 { margin-top: 1.15rem; }
     .block-container, .block-container h1, .block-container h2,
     .block-container h3, .block-container p, .block-container li,
     .block-container span { color: #111827; }
+    [data-testid="stCaptionContainer"],
+    [data-testid="stCaptionContainer"] * {
+        color: #475467 !important;
+    }
+    .home-note {
+        border: 1px solid #d0d5dd;
+        background: #ffffff;
+        border-radius: 0.45rem;
+        padding: 0.75rem 0.85rem;
+        margin: 0.85rem 0 1rem;
+    }
+    .home-note strong {
+        color: #111827;
+    }
     div[data-testid="stButton"] > button,
     div[data-testid="stPageLink"] a {
         background: #075e2d !important;
@@ -46,6 +63,11 @@ st.caption("Online-Version mit Dashboard und gefuehrtem Assistenten.")
 st.write(
     "Waehle links in der Seitenleiste eine Seite aus. "
     "Beide Oberflaechen verwenden denselben Rechenkern und dieselben Tabellen."
+)
+st.markdown(
+    "<div class='home-note'><strong>Empfehlung:</strong> Nutze den Assistenten fuer den Beleg Schritt fuer Schritt. "
+    "Das Dashboard ist gut zum schnellen Pruefen und Vergleichen.</div>",
+    unsafe_allow_html=True,
 )
 
 col1, col2 = st.columns(2)
