@@ -224,7 +224,11 @@ def fmt(value: float | None, digits: int = 3, unit: str = "") -> str:
 
 def init_state() -> None:
     for key, value in WIZARD_DEFAULTS.items():
-        st.session_state.setdefault(f"wizard_{key}", value)
+        state_key = f"wizard_{key}"
+        if st.session_state.get(state_key) is None and key not in {"material_name", "selected_module", "selected_bearing_left", "selected_bearing_right"}:
+            st.session_state[state_key] = value
+        else:
+            st.session_state.setdefault(state_key, value)
     st.session_state.setdefault("custom_bearings", [])
     st.session_state.setdefault("custom_materials", [])
 

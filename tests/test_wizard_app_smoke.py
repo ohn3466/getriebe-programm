@@ -41,6 +41,17 @@ class WizardAppSmokeTests(unittest.TestCase):
 
         self.assertFalse(button_by_label(app, "Weiter").disabled)
 
+    def test_wizard_recovers_stale_none_session_values(self):
+        app = AppTest.from_file("wizard_app.py")
+        app.session_state["wizard_z2_auto"] = False
+        app.session_state["wizard_z2_manual"] = None
+        app.session_state["wizard_d_sh_wheel_mm"] = None
+        app.run(timeout=10)
+
+        self.assertEqual(len(app.exception), 0)
+        self.assertEqual(app.session_state["wizard_z2_manual"], 113)
+        self.assertEqual(app.session_state["wizard_d_sh_wheel_mm"], 45.0)
+
     def test_wizard_keeps_values_when_moving_back_and_forward(self):
         app = AppTest.from_file("wizard_app.py")
         app.run(timeout=10)

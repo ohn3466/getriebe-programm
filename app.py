@@ -63,7 +63,11 @@ DASHBOARD_DEFAULTS = {
 
 def init_dashboard_state() -> None:
     for key, value in DASHBOARD_DEFAULTS.items():
-        st.session_state.setdefault(f"dashboard_{key}", value)
+        state_key = f"dashboard_{key}"
+        if st.session_state.get(state_key) is None:
+            st.session_state[state_key] = value
+        else:
+            st.session_state.setdefault(state_key, value)
     st.session_state.setdefault("custom_bearings", [])
     st.session_state.setdefault("custom_materials", [])
 
